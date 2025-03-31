@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
-g++ main.cpp matrix.cpp -std=c++11
+g++ -std=c++20 -Wall -Wextra src/*.cpp
 ./a.out $*
