@@ -5,7 +5,6 @@
 class Query {
     protected:
         DB& database;
-        std::unordered_map<std::string, std::string> tips;
     public:
         Query(DB& database);
         virtual ~Query();

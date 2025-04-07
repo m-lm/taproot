@@ -7,17 +7,13 @@
 #include <unordered_map>
 
 Query::Query(DB& database) : database(database) {
-    this->tips = {
-        {"put", "put <KEY> <VALUE>"},
-        {"get", "get <KEY>"},
-        {"del", "del <KEY>"},
-    };
 }
 
 Query::~Query() {
 }
 
 void Query::parseCommand(const std::string& command) {
+    // Parses user input query to execute the appropriate command.
     if (command.length() == 0) {
         return;
     }
@@ -28,11 +24,15 @@ void Query::parseCommand(const std::string& command) {
         tokens.push_back(token);
     }
 
+    std::unordered_map<std::string, std::string> tips = {
+        {"put", "put <KEY> <VALUE>"},
+        {"get", "get <KEY>"},
+        {"del", "del <KEY>"},
+    };
     const std::string op = tokens[0];
 
     if (op == "put" && tokens.size() == 3) {
         this->database.put(tokens[1], tokens[2]);
-
     }
     else if (op == "get" && tokens.size() == 2) {
         this->database.get(tokens[1]);
@@ -42,12 +42,11 @@ void Query::parseCommand(const std::string& command) {
     }
     else {
         if (tips.count(op) > 0) {
-            std::cout << std::format("Invalid operator usage: '{}' ({})", op, this->tips[op]) << std::endl;
+            std::cout << std::format("\nInvalid operator usage: '{}' ({})", op, tips[op]) << std::endl;
         }
         else {
-            std::cout << "Please use 'put', 'get', and 'del' operators as first keyword." << std::endl;
+            std::cout << "\nPlease use 'put', 'get', and 'del' operators as first keyword." << std::endl;
         }
         return;
     }
-    this->database.display();
 }

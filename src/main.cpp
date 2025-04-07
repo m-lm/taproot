@@ -1,6 +1,6 @@
-#include <iostream>
 #include "db.h"
 #include "query.h"
+#include <iostream>
 #include <cctype>
 
 void test() {
@@ -8,6 +8,7 @@ void test() {
     Query Query(DB);
     std::cout << std::endl;
     std::cout << "Taproot" << std::endl;
+    std::cout << "Display all key-values by typing 'show'" << std::endl;
     std::cout << "Exit the program by typing 'quit' or 'exit'" << std::endl;
     while (true) {
         std::string input;
@@ -16,7 +17,12 @@ void test() {
         if (input == "quit" || input == "exit") {
             break;
         }
-        Query.parseCommand(input);
+        else if (input == "show") {
+            DB.display();
+        }
+        else {
+            Query.parseCommand(input);
+        }
     }
     std::cout << "\nGoodbye\n" << std::endl;
 }
