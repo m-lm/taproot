@@ -1,14 +1,15 @@
 #include "db.h"
+#include "log.h"
 #include <string>
 #include <iostream>
 #include <unordered_map>
 #include <format>
 #include <utility>
 
-DB::DB(const std::string& name) : name(name) {
+DB::DB(const std::string& name) : name(name), logger("logs/" + name + ".log") {
 }
 
-DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name) {
+DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name), logger("logs/" + name + ".log") {
 }
 
 DB::~DB() {
@@ -35,6 +36,11 @@ std::optional<std::string> DB::del(const std::string& key) {
         return key;
     }
     return std::nullopt;
+}
+
+Log& DB::getLogger() {
+    // Return logger private member variable.
+    return this->logger;
 }
 
 void DB::display() const {

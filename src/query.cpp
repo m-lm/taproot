@@ -1,4 +1,5 @@
 #include "query.h"
+#include "db.h"
 #include <iostream>
 #include <cctype>
 #include <vector>
@@ -39,12 +40,14 @@ void Query::parseCommand(const std::string& command) {
 
     if (op == "put" && tokens.size() == 3) {
         this->database.put(tokens[1], tokens[2]);
+        this->database.getLogger().appendPut(tokens[1], tokens[2]);
     }
     else if (op == "get" && tokens.size() == 2) {
         this->database.get(tokens[1]);
     }
     else if (op == "del" && tokens.size() == 2) {
         this->database.del(tokens[1]);
+        this->database.getLogger().appendDelete(tokens[1]);
     }
     else {
         if (tips.count(op) > 0) {

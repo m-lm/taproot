@@ -4,8 +4,8 @@
 #include <cctype>
 
 void test() {
-    DB DB("Taproot");
-    Query Query(DB);
+    DB db("Taproot");
+    Query query(db);
     std::cout << std::endl;
     std::cout << "Taproot" << std::endl;
     std::cout << "Display all key-values by typing 'show'" << std::endl;
@@ -18,10 +18,10 @@ void test() {
             break;
         }
         else if (input == "show") {
-            DB.display();
+            db.display();
         }
         else {
-            Query.parseCommand(input);
+            query.parseCommand(input);
         }
     }
     std::cout << "\nGoodbye\n" << std::endl;

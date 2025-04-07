@@ -1,5 +1,6 @@
 #ifndef DB_H
 #define DB_H
+#include "log.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -9,6 +10,7 @@ class DB {
     protected:
         std::unordered_map<std::string, std::string> store;
         std::string name;
+        Log logger;
     public:
         // Constructors and deconstructors
         DB(const std::string& name);
@@ -37,6 +39,7 @@ class DB {
         std::vector<const std::string&> getValues() const;
         std::vector<const std::pair<std::string, std::string>> getItems() const;
         */
+        Log& getLogger();
 
         // Console print
         void display() const;
