@@ -12,16 +12,21 @@ Query::Query(DB& database) : database(database) {
 Query::~Query() {
 }
 
+std::vector<std::string> Query::tokenize(const std::string& input) {
+    // Tokenizes input string into separate values.
+    std::vector<std::string> tokens = {};
+    std::istringstream iss(input);
+    std::string token;
+    while (iss >> token) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
 void Query::parseCommand(const std::string& command) {
     // Parses user input query to execute the appropriate command.
     if (command.length() == 0) {
         return;
-    }
-    std::vector<std::string> tokens = {};
-    std::istringstream iss(command);
-    std::string token;
-    while (iss >> token) {
-        tokens.push_back(token);
     }
 
     std::unordered_map<std::string, std::string> tips = {
@@ -29,6 +34,7 @@ void Query::parseCommand(const std::string& command) {
         {"get", "get <KEY>"},
         {"del", "del <KEY>"},
     };
+    const std::vector<std::string> tokens = tokenize(command);
     const std::string op = tokens[0];
 
     if (op == "put" && tokens.size() == 3) {
