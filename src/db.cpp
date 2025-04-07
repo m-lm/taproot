@@ -38,8 +38,10 @@ std::optional<std::string> DB::del(const std::string& key) {
 }
 
 void DB::display() const {
-    std::cout << std::format("Key-value store name: {}", this->name) << std::endl;
+    std::cout << "============" << std::endl;
+    std::cout << std::format("| Key-values for {}\n", this->name) << std::endl;
     for (auto item : this->store) {
         std::cout << std::format("{}: {}", item.first, item.second) << std::endl;
     }
+    std::cout << "============" << std::endl;
 }
