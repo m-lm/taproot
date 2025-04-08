@@ -16,6 +16,11 @@ DB::~DB() {
     this->shutdown();
 }
 
+std::string& DB::operator[](const std::string& key) {
+    // Overloaded [] operator for direct use on DB object. Returns a reference to string so it can be modified.
+    return this->store[key];
+}
+
 void DB::put(const std::string& key, const std::string& value) {
     // Add or update key-value pair
     this->store[key] = value;

@@ -18,15 +18,7 @@ class DB {
         virtual ~DB();
 
         // Operator overloading
-        /*
-        DB& operator+(const DB& other);
-        DB& operator-=(const std::pair<std::string, std::string>& item);
-        DB& operator+=(const DB& other);
-        DB& operator+=(const std::pair<std::string, std::string>& item);
-        bool operator==(const DB& other) const;
-        bool operator!=(const DB& other) const;
-        std::string& operator[](const std::string& key) const;
-        */
+        std::string& operator[](const std::string& key);
 
         // Base functionality
         void put(const std::string& key, const std::string& value);
