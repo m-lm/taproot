@@ -1,5 +1,6 @@
 #include "query.h"
 #include "db.h"
+#include "utils.h"
 #include <iostream>
 #include <cctype>
 #include <vector>
@@ -11,17 +12,6 @@ Query::Query(DB& database) : database(database) {
 }
 
 Query::~Query() {
-}
-
-std::vector<std::string> Query::tokenize(const std::string& input) {
-    // Tokenizes input string into separate values.
-    std::vector<std::string> tokens = {};
-    std::istringstream iss(input);
-    std::string token;
-    while (iss >> token) {
-        tokens.push_back(token);
-    }
-    return tokens;
 }
 
 void Query::parseCommand(const std::string& command) {

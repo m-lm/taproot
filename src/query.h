@@ -9,7 +9,6 @@ class Query {
         Query(DB& database);
         virtual ~Query();
 
-        std::vector<std::string> tokenize(const std::string& input);
         void parseCommand(const std::string& command);
 };
 

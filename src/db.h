@@ -29,9 +29,9 @@ class DB {
         */
 
         // Base functionality
-        std::pair<std::string, std::string> put(const std::string& key, const std::string& value);
+        void put(const std::string& key, const std::string& value);
         std::optional<std::string> get(const std::string& key) const;
-        std::optional<std::string> del(const std::string& key);
+        bool del(const std::string& key);
 
         // Group data getters
         /*
@@ -43,6 +43,9 @@ class DB {
 
         // Console print
         void display() const;
+
+        // Shutdown key-value store
+        void shutdown();
 };
 
 #endif

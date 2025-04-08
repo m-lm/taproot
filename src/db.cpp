@@ -6,22 +6,23 @@
 #include <format>
 #include <utility>
 
-DB::DB(const std::string& name) : name(name), logger("logs/" + name + ".log") {
+DB::DB(const std::string& name) : name(name), logger(name) {
 }
 
-DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name), logger("logs/" + name + ".log") {
+DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name), logger(name) {
 }
 
 DB::~DB() {
+    this->shutdown();
 }
 
-std::pair<std::string, std::string> DB::put(const std::string& key, const std::string& value) {
+void DB::put(const std::string& key, const std::string& value) {
     // Add or update key-value pair
     this->store[key] = value;
-    return {key, value};
 }
 
 std::optional<std::string> DB::get(const std::string& key) const {
+    // Get the value of a specified key
     auto iter = this->store.find(key);
     if (iter != this->store.end()) {
         return iter->second;
@@ -29,17 +30,17 @@ std::optional<std::string> DB::get(const std::string& key) const {
     return std::nullopt;
 }
 
-std::optional<std::string> DB::del(const std::string& key) {
+bool DB::del(const std::string& key) {
     // Delete the key-value pair from the store
     int status = this->store.erase(key);
-    if (status) {
-        return key;
+    if (status >= 1) {
+        return true;
     }
-    return std::nullopt;
+    return false;
 }
 
 Log& DB::getLogger() {
-    // Return logger private member variable.
+    // Return logger private member variable
     return this->logger;
 }
 
@@ -50,4 +51,9 @@ void DB::display() const {
         std::cout << std::format("{}: {}", item.first, item.second) << std::endl;
     }
     std::cout << "============" << std::endl;
+}
+
+void DB::shutdown() {
+    this->logger.closeLog();
+    this->logger.compactLog();
 }
