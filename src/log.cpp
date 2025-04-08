@@ -40,7 +40,7 @@ void Log::compactLog() {
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression.
     // Also assumes no invalid commands were permitted into the log.
     if (this->logfile.is_open()) {
-        throw std::runtime_error("Error: Cannot compact logfile that is still open.");
+        throw std::runtime_error("Cannot compact logfile that is still open.");
     }
 
     std::unordered_map<std::string, std::string> parseMap;

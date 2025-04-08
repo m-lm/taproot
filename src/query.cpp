@@ -16,7 +16,7 @@ Query::~Query() {
 
 void Query::parseCommand(const std::string& command) {
     // Parses user input query to execute the appropriate command.
-    if (command.length() == 0) {
+    if (command.length() == 0 || isAllSpace(command)) {
         return;
     }
 
