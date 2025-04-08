@@ -6,11 +6,14 @@
 #include <unordered_map>
 #include <utility>
 
+class Query;
+
 class DB {
     protected:
         std::unordered_map<std::string, std::string> store;
         std::string name;
         Log logger;
+        Query* query;
     public:
         // Constructors and deconstructors
         DB(const std::string& name);
@@ -32,6 +35,7 @@ class DB {
         std::vector<const std::pair<std::string, std::string>> getItems() const;
         */
         Log& getLogger();
+        void loadFromLog();
 
         // Console print
         void display() const;

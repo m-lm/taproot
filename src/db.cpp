@@ -1,5 +1,6 @@
 #include "db.h"
 #include "log.h"
+#include "query.h"
 #include <string>
 #include <iostream>
 #include <unordered_map>
@@ -7,13 +8,17 @@
 #include <utility>
 
 DB::DB(const std::string& name) : name(name), logger(name) {
+    this->query = new Query(*this);
+    this->loadFromLog();
 }
 
 DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name), logger(name) {
+    this->query = new Query(*this);
 }
 
 DB::~DB() {
     this->shutdown();
+    delete this->query;
 }
 
 std::string& DB::operator[](const std::string& key) {
@@ -49,7 +54,23 @@ Log& DB::getLogger() {
     return this->logger;
 }
 
+void DB::loadFromLog() {
+    // Replay the commands from the compacted log to fill the store with data
+    std::ifstream loader("logs/" + this->name + "_compacted.log");
+    std::string line;
+    if (loader.is_open() && this->store.empty()) {
+        while(getline(loader, line)) {
+            this->query->parseCommand(line);
+        }
+        loader.close();
+    }
+    else {
+        std::cout << "Note: either log loader isn't open, or the store is nonempty." << std::endl;
+    }
+}
+
 void DB::display() const {
+    // Display the key value store in a readable format
     std::cout << "\n============" << std::endl;
     std::cout << std::format("| Key-values for {}\n", this->name) << std::endl;
     for (auto item : this->store) {
@@ -59,6 +80,7 @@ void DB::display() const {
 }
 
 void DB::shutdown() {
+    // Shutdown log file access to allow for compaction. Typically, use on DB close
     this->logger.closeLog();
     this->logger.compactLog();
 }
