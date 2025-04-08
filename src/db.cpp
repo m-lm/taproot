@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <format>
 #include <utility>
+#include <filesystem>
 
 DB::DB(const std::string& name) : name(name), logger(name) {
     this->query = std::make_unique<Query>(*this);
@@ -70,6 +71,9 @@ void DB::loadFromLog() {
 
 void DB::display() const {
     // Display the key value store in a readable format
+    std::uintmax_t filesize = std::filesystem::file_size("logs/" + this->name + "_compacted.log"); // In bytes
+    const std::uintmax_t compressionThreshold = 10 * 1024 * 1024; // 10 MB in bytes
+    std::cout << std::format("\nOn-disk compacted logfile compression threshold: {} / {} bytes\n", filesize, compressionThreshold);
     std::cout << "\n============" << std::endl;
     std::cout << std::format("| Key-values for {}\n", this->name) << std::endl;
     for (const auto& item : this->store) {
