@@ -10,7 +10,7 @@
 
 Log::Log(const std::string& filename) : filename(filename) {
     // Log are owned by DB (store) objects.
-    this->logfile.open("logs/" + filename + ".log");
+    this->logfile.open("logs/" + filename + ".log", std::ios::app);
 }
 
 Log::~Log() {

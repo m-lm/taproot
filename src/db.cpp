@@ -72,7 +72,7 @@ void DB::display() const {
     // Display the key value store in a readable format
     std::cout << "\n============" << std::endl;
     std::cout << std::format("| Key-values for {}\n", this->name) << std::endl;
-    for (auto item : this->store) {
+    for (const auto& item : this->store) {
         std::cout << std::format("{}: {}", item.first, item.second) << std::endl;
     }
     std::cout << "============" << std::endl;
