@@ -59,7 +59,7 @@ void DB::loadFromLog() {
     std::string line;
     if (loader.is_open() && this->store.empty()) {
         while(getline(loader, line)) {
-            this->query->parseCommand(line);
+            this->query->parseCommand(line, true);
         }
         loader.close();
     }
