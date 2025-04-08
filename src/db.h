@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <utility>
+#include <memory>
 
 class Query;
 
@@ -13,7 +14,7 @@ class DB {
         std::unordered_map<std::string, std::string> store;
         std::string name;
         Log logger;
-        Query* query;
+        std::unique_ptr<Query> query;
     public:
         // Constructors and deconstructors
         DB(const std::string& name);

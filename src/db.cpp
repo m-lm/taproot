@@ -8,17 +8,16 @@
 #include <utility>
 
 DB::DB(const std::string& name) : name(name), logger(name) {
-    this->query = new Query(*this);
+    this->query = std::make_unique<Query>(*this);
     this->loadFromLog();
 }
 
 DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name), logger(name) {
-    this->query = new Query(*this);
+    this->query = std::make_unique<Query>(*this);
 }
 
 DB::~DB() {
     this->shutdown();
-    delete this->query;
 }
 
 std::string& DB::operator[](const std::string& key) {
