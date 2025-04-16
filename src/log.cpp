@@ -9,7 +9,7 @@
 #include <utility>
 
 Log::Log(const std::string& filename) : filename(filename) {
-    // Log are owned by DB (store) objects.
+    // Logs are owned by DB (store) objects
     this->logfile.open("logs/" + filename + ".log", std::ios::app);
 }
 
@@ -17,7 +17,7 @@ Log::~Log() {
 }
 
 void Log::appendPut(const std::string& key, const std::string& value) {
-    // Append the "put" query to the log file.
+    // Append the "put" query to the log file
     if (this->logfile.is_open()) {
         this->logfile << std::format("put {} {}\n", key, value);
     }
@@ -27,7 +27,7 @@ void Log::appendPut(const std::string& key, const std::string& value) {
 }
 
 void Log::appendDelete(const std::string& key) {
-    // Append the "del" query to the log file.
+    // Append the "del" query to the log file
     if (this->logfile.is_open()) {
         this->logfile << std::format("del {}\n", key);
     }
@@ -37,8 +37,8 @@ void Log::appendDelete(const std::string& key) {
 }
 
 void Log::compactLog() {
-    // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression.
-    // Also assumes no invalid commands were permitted into the log.
+    // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
+    // Also assumes no invalid commands were permitted into the log
     if (this->logfile.is_open()) {
         throw std::runtime_error("Cannot compact logfile that is still open.");
     }
@@ -73,6 +73,7 @@ void Log::compactLog() {
 }
 
 void Log::closeLog() {
+    // Close the logfile
     if (this->logfile.is_open()) {
         this->logfile.close();
     }

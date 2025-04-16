@@ -6,16 +6,31 @@
 void test() {
     DB db("Taproot");
     Query query(db);
-    std::cout << std::endl;
-    std::cout << "Taproot" << std::endl;
-    std::cout << "Display all key-values by typing 'show'" << std::endl;
-    std::cout << "Exit the program by typing 'quit' or 'exit'" << std::endl;
+    const std::string welcome = R"(
+            TAPROOT 
+    ----------------------------------
+        Key-value. Document. RDF.
+    ----------------------------------
+   
+    put     → store values by key
+    get     → retrieve values by key
+    del     → delete key-values
+    show    → display all key-values
+    help    → display commands
+    quit    → close the program
+    
+   )";
+
+    std::cout << welcome << std::endl;
     while (true) {
         std::string input;
-        std::cout << "\nEnter command:\n> ";
+        std::cout << "\ntap> ";
         std::getline(std::cin, input);
         if (input == "quit" || input == "exit") {
             break;
+        }
+        else if (input == "help") {
+            std::cout << welcome << std::endl;
         }
         else if (input == "show") {
             db.display();
