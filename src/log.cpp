@@ -8,9 +8,9 @@
 #include <stdexcept>
 #include <utility>
 
-Log::Log(const std::string& filename) : filename(filename) {
-    // Logs are owned by DB (store) objects
-    this->logfile.open("logs/" + filename + ".log", std::ios::app);
+Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName) {
+    // Logs (full changelogs) are owned by DB (store) objects
+    this->logfile.open("logs/" + keyspaceName + ".log", std::ios::app);
 }
 
 Log::~Log() {
@@ -22,7 +22,7 @@ void Log::appendPut(const std::string& key, const std::string& value) {
         this->logfile << std::format("put {} {}\n", key, value);
     }
     else {
-        std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->filename) << std::endl;
+        std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
     }
 }
 
@@ -32,20 +32,36 @@ void Log::appendDelete(const std::string& key) {
         this->logfile << std::format("del {}\n", key);
     }
     else {
-        std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->filename) << std::endl;
+        std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
     }
+}
+
+std::string Log::getLatestSnapshot(const std::string& keyspace) {
+    // Searches the logs directory to find the latest .dat snapshot containing the keyspace name
+    std::string latestSnapshot;
+    for (const auto& entry : std::filesystem::directory_iterator("logs")) {
+        std::string filename = entry.path().filename().string();
+        if (filename.starts_with(keyspace + "_") && filename.ends_with(".dat")) {
+            if (filename > latestSnapshot) {
+                latestSnapshot = filename;
+            }
+        }
+    }
+    return "logs/" + latestSnapshot;
 }
 
 void Log::compactLog() {
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
     // Also assumes no invalid commands were permitted into the log
+    std::string changelogFilename = std::format("logs/{}.log", this->keyspaceName);
+    std::string snapshotFilename = std::format("logs/{}_{}.dat", this->keyspaceName, getTimestamp());
     if (this->logfile.is_open()) {
         throw std::runtime_error("Cannot compact logfile that is still open.");
     }
 
     std::unordered_map<std::string, std::string> parseMap;
     std::string line;
-    std::ifstream reader("logs/" + this->filename + ".log");
+    std::ifstream reader(changelogFilename);
     if (reader.is_open()) {
         while (getline(reader, line)) {
             std::vector<std::string> tokens = tokenize(line);
@@ -61,8 +77,10 @@ void Log::compactLog() {
         }
         reader.close();
     }
+
+    // Write to timestamped snapshot (replayability)
     if (!parseMap.empty()) {
-        std::ofstream writer("logs/" + this->filename + "_compacted.log");
+        std::ofstream writer(snapshotFilename);
         if (writer.is_open()) {
             for (const std::pair<const std::string, std::string>& pair : parseMap) {
                 writer << std::format("put {} {}\n", pair.first, pair.second);

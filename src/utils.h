@@ -4,5 +4,6 @@
 
 bool isAllSpace(const std::string& input);
 std::vector<std::string> tokenize(const std::string& input);
+std::string getTimestamp();
 
 #endif

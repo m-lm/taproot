@@ -39,7 +39,7 @@ class DB {
         void loadFromLog();
 
         // Console print
-        void display() const;
+        void display();
 
         // Shutdown key-value store
         void shutdown();
