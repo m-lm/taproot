@@ -13,6 +13,7 @@ class Log {
 
         void appendPut(const std::string& key, const std::string& value);
         void appendDelete(const std::string& key);
+        void writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state);
         std::string getLatestSnapshot(const std::string& keyspace);
         void compactLog();
 

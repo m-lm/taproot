@@ -36,6 +36,33 @@ void Log::appendDelete(const std::string& key) {
     }
 }
 
+void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state) {
+    // Takes the current final state (equivalent to compacted human-readable snapshot) and serializes to binary for performance
+    // The keyspace state is passed by reference from owner DB instance
+    // Binary format: [Keyspace size][Key1 size][Key1 data][Value1 size][Value1 data]...
+    std::string binaryFilename = std::format("logs/{}.db", this->keyspaceName);
+    std::ofstream writer(binaryFilename, std::ios::binary);
+    if (writer.is_open()) {
+        const char* MAGIC = "TDB";
+        size_t keyspaceSize = state.size();
+
+        writer.write(MAGIC, 3);
+        writer.write(reinterpret_cast<const char*>(&keyspaceSize), sizeof(keyspaceSize));
+
+        // Key-values
+        for (const auto& [key, value] : state) {
+            size_t keySize = key.size();
+            size_t valSize = value.size();
+
+            writer.write(reinterpret_cast<const char*>(&keySize), sizeof(keySize));
+            writer.write(key.data(), keySize);
+            writer.write(reinterpret_cast<const char*>(&valSize), sizeof(valSize));
+            writer.write(value.data(), valSize);
+        }
+        writer.close();
+    }
+}
+
 std::string Log::getLatestSnapshot(const std::string& keyspace) {
     // Searches the logs directory to find the latest .dat snapshot containing the keyspace name
     std::string latestSnapshot;
@@ -88,6 +115,9 @@ void Log::compactLog() {
             writer.close();
         }
     }
+
+    // Write to binary snapshot as well
+    this->writeBinarySnapshot(parseMap);
 }
 
 void Log::closeLog() {

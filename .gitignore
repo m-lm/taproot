@@ -1,6 +1,8 @@
 .DS_Store
 .vscode/
+*.dSYM/
 todo.txt
+prof.txt
 logs/
 
 # Prerequisites
