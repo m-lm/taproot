@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
-if [ "$1" = "--profile" ] && [ "$(uname)" = "Darwin" ]; then
+if [ "$1" = "--profile" ]; then
     shift
-    echo "Profiling performance..."
-    g++ -std=c++20 -Wall -Wextra -g src/*.cpp -o taproot.out
-    ./taproot.out $@
-    open -a Instruments
+    echo "Testing..."
+    g++ -std=c++20 -Wall -Wextra -g tests/test.cpp $(find src -type f -name "*.cpp" ! -name "main.cpp") -o test.out
+    ./test.out $@
+    fi
 else
     g++ -std=c++20 -Wall -Wextra src/*.cpp -o taproot.out
     ./taproot.out $@

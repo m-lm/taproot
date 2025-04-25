@@ -2,7 +2,6 @@
 .vscode/
 *.dSYM/
 todo.txt
-prof.txt
 logs/
 
 # Prerequisites
