@@ -1,6 +1,6 @@
-#include "query.h"
-#include "db.h"
-#include "utils.h"
+#include "taproot/query.h"
+#include "taproot/db.h"
+#include "taproot/utils.h"
 #include <iostream>
 #include <cctype>
 #include <vector>

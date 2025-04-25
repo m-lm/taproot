@@ -1,5 +1,4 @@
-#ifndef LOG_H
-#define LOG_H
+#pragma once
 #include <fstream>
 #include <vector>
 
@@ -19,5 +18,3 @@ class Log {
 
         void closeLog();
 };
-
-#endif

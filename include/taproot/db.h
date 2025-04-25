@@ -1,5 +1,4 @@
-#ifndef DB_H
-#define DB_H
+#pragma once
 #include "log.h"
 #include <string>
 #include <vector>
@@ -44,5 +43,3 @@ class DB {
         // Shutdown key-value store
         void shutdown();
 };
-
-#endif

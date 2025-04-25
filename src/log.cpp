@@ -1,5 +1,5 @@
-#include "log.h"
-#include "utils.h"
+#include "taproot/log.h"
+#include "taproot/utils.h"
 #include <fstream>
 #include <iostream>
 #include <string>

@@ -1,6 +1,6 @@
-#include "db.h"
-#include "log.h"
-#include "query.h"
+#include "taproot/db.h"
+#include "taproot/log.h"
+#include "taproot/query.h"
 #include <string>
 #include <iostream>
 #include <unordered_map>

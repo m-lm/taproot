@@ -1,6 +1,6 @@
-#include "../src/db.h"
-#include "../src/query.h"
-#include "../src/utils.h"
+#include "taproot/db.h"
+#include "taproot/query.h"
+#include "taproot/utils.h"
 #include <random>
 
 int main() {

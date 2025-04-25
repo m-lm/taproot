@@ -1,5 +1,5 @@
-#include "db.h"
-#include "query.h"
+#include "taproot/db.h"
+#include "taproot/query.h"
 #include <iostream>
 #include <cctype>
 

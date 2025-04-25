@@ -1,5 +1,4 @@
-#ifndef QUERY_H
-#define QUERY_H
+#pragma once
 #include "db.h"
 
 class Query {
@@ -11,5 +10,3 @@ class Query {
 
         void parseCommand(const std::string& command, const bool replay=false);
 };
-
-#endif
