@@ -35,7 +35,10 @@ void Query::parseCommand(const std::string& command, const bool replay) {
         }
     }
     else if (op == "get" && tokens.size() == 2) {
-        this->database.get(tokens[1]);
+        std::optional<std::string> value = this->database.get(tokens[1]);
+        if (!replay && value) {
+            std::cout << *value << std::endl;
+        }
     }
     else if (op == "del" && tokens.size() == 2) {
         this->database.del(tokens[1]);
