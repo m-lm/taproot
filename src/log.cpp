@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <utility>
+#include <cstdio>
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
@@ -63,9 +64,9 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
     }
 }
 
-int Log::updateAofCount() {
+void Log::updateAofCount() {
     // Update count of .aof files (compacted human-readable snapshots) for log management purposes
-    int count = 0;
+    size_t count = 0;
     for (const auto& entry : std::filesystem::directory_iterator("logs")) {
         std::string filename = entry.path().filename().string();
         if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
@@ -73,7 +74,6 @@ int Log::updateAofCount() {
         }
     }
     this->aofCount = count;
-    return count;
 }
 
 std::string Log::getLatestSnapshot() {
@@ -93,16 +93,28 @@ std::string Log::getLatestSnapshot() {
 std::string Log::getEarliestSnapshot() {
     // Searches the logs directory to find the earliest .aof snapshot containing the keyspace name to overwrite/archive
     // Note that sorting would be O(n log n) and linearly checking would simply be O(n), unless already sorted
-    std::string earliestSnapshot;
+    std::string earliestSnapshot = "";
     for (const auto& entry : std::filesystem::directory_iterator("logs")) {
         std::string filename = entry.path().filename().string();
         if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
-            if (filename < earliestSnapshot) {
+            if (earliestSnapshot.empty() || filename < earliestSnapshot) {
                 earliestSnapshot = filename;
             }
         }
     }
     return "logs/" + earliestSnapshot;
+}
+
+void Log::rotateLogs() {
+    // Manage DB Append-Only File (.aof) logs by rotating, archiving, deleting, or overwriting old logs. Limit max .aof files to 5 per keyspace.
+    this->updateAofCount();
+    if (this->aofCount >= MAX_AOF_FILES) {
+        std::string filename = this->getEarliestSnapshot();
+        if (remove(filename.c_str()) != 0 || std::filesystem::is_directory(filename)) {
+            std::perror("Cannot delete .aof file.");
+            exit(1);
+        }
+    }
 }
 
 void Log::compactLog() {

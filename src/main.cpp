@@ -4,11 +4,9 @@
 #include <iostream>
 #include <cctype>
 
-
-
 void cli() {
     const std::string welcome = R"(
-            TAPROOT 
+            taprootDB 
     ----------------------------------
         Key-value. Document. RDF.
     ----------------------------------
@@ -21,15 +19,15 @@ void cli() {
     help    → display commands
     quit    → close the program
     
-   )";
+    )";
 
-    std::cout << welcome << std::endl;
     std::string keyspaceName;
     while (true) {
-        std::cout << "Enter keyspace to use\n> ";
+        std::cout << "\nEnter keyspace to use\n> ";
         std::getline(std::cin, keyspaceName);
         break;
     }
+    std::cout << welcome << std::endl;
     DB db(keyspaceName);
     Query query(db);
     while (true) {
