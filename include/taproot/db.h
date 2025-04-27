@@ -14,6 +14,7 @@ class DB {
         std::string name;
         Log logger;
         std::unique_ptr<Query> query;
+
     public:
         // Constructors and deconstructors
         DB(const std::string& name);

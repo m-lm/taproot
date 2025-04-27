@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <utility>
 
-Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName) {
+Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
     this->logfile.open("logs/" + keyspaceName + ".log", std::ios::app);
 }
@@ -63,12 +63,25 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
     }
 }
 
-std::string Log::getLatestSnapshot(const std::string& keyspace) {
-    // Searches the logs directory to find the latest .dat snapshot containing the keyspace name
+int Log::updateAofCount() {
+    // Update count of .aof files (compacted human-readable snapshots) for log management purposes
+    int count = 0;
+    for (const auto& entry : std::filesystem::directory_iterator("logs")) {
+        std::string filename = entry.path().filename().string();
+        if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
+            count++;
+        }
+    }
+    this->aofCount = count;
+    return count;
+}
+
+std::string Log::getLatestSnapshot() {
+    // Searches the logs directory to find the latest .aof snapshot containing the keyspace name
     std::string latestSnapshot;
     for (const auto& entry : std::filesystem::directory_iterator("logs")) {
         std::string filename = entry.path().filename().string();
-        if (filename.starts_with(keyspace + "_") && filename.ends_with(".dat")) {
+        if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
             if (filename > latestSnapshot) {
                 latestSnapshot = filename;
             }
@@ -77,11 +90,26 @@ std::string Log::getLatestSnapshot(const std::string& keyspace) {
     return "logs/" + latestSnapshot;
 }
 
+std::string Log::getEarliestSnapshot() {
+    // Searches the logs directory to find the earliest .aof snapshot containing the keyspace name to overwrite/archive
+    // Note that sorting would be O(n log n) and linearly checking would simply be O(n), unless already sorted
+    std::string earliestSnapshot;
+    for (const auto& entry : std::filesystem::directory_iterator("logs")) {
+        std::string filename = entry.path().filename().string();
+        if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
+            if (filename < earliestSnapshot) {
+                earliestSnapshot = filename;
+            }
+        }
+    }
+    return "logs/" + earliestSnapshot;
+}
+
 void Log::compactLog() {
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
     // Also assumes no invalid commands were permitted into the log
     std::string changelogFilename = std::format("logs/{}.log", this->keyspaceName);
-    std::string snapshotFilename = std::format("logs/{}_{}.dat", this->keyspaceName, getTimestamp());
+    std::string snapshotFilename = std::format("logs/{}_{}.aof", this->keyspaceName, getTimestamp());
     if (this->logfile.is_open()) {
         throw std::runtime_error("Cannot compact logfile that is still open.");
     }

@@ -4,6 +4,7 @@
 class Query {
     protected:
         DB& database;
+
     public:
         Query(DB& database);
         virtual ~Query();

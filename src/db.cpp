@@ -57,7 +57,7 @@ Log& DB::getLogger() {
 void DB::loadFromLog() {
     // Replay the commands from the compacted log to fill the store with data
     // Note: this loads from the snapshot, not the full changelog
-    std::string snapshotFilename = this->logger.getLatestSnapshot(this->name);
+    std::string snapshotFilename = this->logger.getLatestSnapshot();
     if (!std::filesystem::exists(snapshotFilename)) {
         std::cout << "NOTE: replay snapshot not found." << std::endl;
         return;
@@ -77,7 +77,7 @@ void DB::loadFromLog() {
 
 void DB::display() {
     // Display the key value store in a readable format
-    std::string snapshotFilename = this->logger.getLatestSnapshot(this->name);
+    std::string snapshotFilename = this->logger.getLatestSnapshot();
     if (std::filesystem::exists(snapshotFilename) && std::filesystem::is_regular_file(snapshotFilename)) {
         std::uintmax_t filesize = std::filesystem::file_size(snapshotFilename); // In bytes
         const std::uintmax_t compressionThreshold = 10 * 1024 * 1024; // 10 MB in bytes
