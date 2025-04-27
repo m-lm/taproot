@@ -1,20 +1,22 @@
 #include "taproot/db.h"
 #include "taproot/query.h"
+#include "taproot/utils.h"
 #include <iostream>
 #include <cctype>
 
-void test() {
-    DB db("Taproot");
-    Query query(db);
+
+
+void cli() {
     const std::string welcome = R"(
             TAPROOT 
     ----------------------------------
         Key-value. Document. RDF.
     ----------------------------------
    
-    put     → store values by key
-    get     → retrieve values by key
-    del     → delete key-values
+    use     → switch keyspace
+    put     → store value by key
+    get     → retrieve value by key
+    del     → delete key-value pair
     show    → display all key-values
     help    → display commands
     quit    → close the program
@@ -22,6 +24,14 @@ void test() {
    )";
 
     std::cout << welcome << std::endl;
+    std::string keyspaceName;
+    while (true) {
+        std::cout << "Enter keyspace to use\n> ";
+        std::getline(std::cin, keyspaceName);
+        break;
+    }
+    DB db(keyspaceName);
+    Query query(db);
     while (true) {
         std::string input;
         std::cout << "\ntap> ";
@@ -43,6 +53,6 @@ void test() {
 }
 
 int main() {
-    test();
+    cli();
     return 0;
 }

@@ -34,15 +34,15 @@ void Query::parseCommand(const std::string& command, const bool replay) {
             this->database.getLogger().appendPut(tokens[1], tokens[2]);
         }
     }
+    else if (op == "del" && tokens.size() == 2) {
+        this->database.del(tokens[1]);
+        this->database.getLogger().appendDelete(tokens[1]);
+    }
     else if (op == "get" && tokens.size() == 2) {
         std::optional<std::string> value = this->database.get(tokens[1]);
         if (!replay && value) {
             std::cout << *value << std::endl;
         }
-    }
-    else if (op == "del" && tokens.size() == 2) {
-        this->database.del(tokens[1]);
-        this->database.getLogger().appendDelete(tokens[1]);
     }
     else {
         if (tips.count(op) > 0) {
