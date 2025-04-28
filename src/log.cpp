@@ -13,7 +13,9 @@
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
-    this->logfile.open("logs/" + keyspaceName + ".log", std::ios::app);
+    this->dbFilepath = std::format("logs/{}.db", this->keyspaceName);
+    this->logFilepath = std::format("logs/{}.log", this->keyspaceName);
+    this->logfile.open(this->logFilepath, std::ios::app);
 }
 
 Log::~Log() {
@@ -60,8 +62,7 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
         datastream.write(value.data(), valSize);
     }
 
-    std::string binaryFilename = std::format("logs/{}.db", this->keyspaceName);
-    std::ofstream writer(binaryFilename, std::ios::binary);
+    std::ofstream writer(this->dbFilepath, std::ios::binary);
 
     // Write stream contents to file, using compression if needed
     if (writer.is_open()) {
@@ -125,10 +126,19 @@ void Log::rotateLogs() {
     // Manage DB Append-Only File (.aof) logs by rotating, archiving, deleting, or overwriting old logs. Limit max .aof files to 5 per keyspace.
     this->updateAofCount();
     if (this->aofCount >= MAX_AOF_FILES) {
-        std::string filename = this->getEarliestSnapshot();
-        if (remove(filename.c_str()) != 0 || std::filesystem::is_directory(filename)) {
+        std::string snapshotFilename = this->getEarliestSnapshot();
+        if (remove(snapshotFilename.c_str()) != 0 || std::filesystem::is_directory(snapshotFilename)) {
             std::perror("Cannot delete .aof file.");
             exit(1);
+        }
+    }
+
+    // Rewrite whole log to latest compacted state when threshold is reached. Optionally archive old log
+    if (std::filesystem::exists(this->logFilepath) && std::filesystem::is_regular_file(this->logFilepath)) {
+        size_t logFilesize = std::filesystem::file_size(this->logFilepath);
+        if (logFilesize > ROTATION_THRESHOLD) {
+            // TODO: Archive old .log file and compress using LZ4 on human-readable
+            std::filesystem::copy(this->getLatestSnapshot(), this->logFilepath, std::filesystem::copy_options::overwrite_existing); // Duplicate and replace/fill, not rename
         }
     }
 }
@@ -136,7 +146,6 @@ void Log::rotateLogs() {
 void Log::compactLog() {
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
     // Also assumes no invalid commands were permitted into the log
-    std::string changelogFilename = std::format("logs/{}.log", this->keyspaceName);
     std::string snapshotFilename = std::format("logs/{}_{}.aof", this->keyspaceName, getTimestamp());
     if (this->logfile.is_open()) {
         throw std::runtime_error("Cannot compact logfile that is still open.");
@@ -144,7 +153,7 @@ void Log::compactLog() {
 
     std::unordered_map<std::string, std::string> parseMap;
     std::string line;
-    std::ifstream reader(changelogFilename);
+    std::ifstream reader(this->logFilepath);
     if (reader.is_open()) {
         while (getline(reader, line)) {
             std::vector<std::string> tokens = tokenize(line);

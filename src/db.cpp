@@ -87,7 +87,7 @@ void DB::display() {
 
 void DB::shutdown() {
     // Shutdown log file access to allow for compaction. Typically, use on DB close
-    this->logger.rotateLogs();
     this->logger.closeLog();
     this->logger.compactLog();
+    this->logger.rotateLogs();
 }
