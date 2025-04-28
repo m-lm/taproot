@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <utility>
 #include <cstdio>
+#include <cstdint>
+#include <sstream>
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
@@ -41,24 +43,38 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
     // Takes the current final state (equivalent to compacted human-readable snapshot) and serializes to binary for performance
     // The keyspace state is passed by reference from owner DB instance
     // Binary format: [Keyspace size][Key1 size][Key1 data][Value1 size][Value1 data]...
+    std::ostringstream datastream;
+    size_t keyspaceSize = state.size();
+    const char* MAGIC = "TDB";
+    datastream.write(MAGIC, 3);
+    datastream.write(reinterpret_cast<const char*>(&keyspaceSize), sizeof(keyspaceSize));
+
+    // Write to string stream
+    for (const auto& [key, value] : state) {
+        size_t keySize = key.size();
+        size_t valSize = value.size();
+
+        datastream.write(reinterpret_cast<const char*>(&keySize), sizeof(keySize));
+        datastream.write(key.data(), keySize);
+        datastream.write(reinterpret_cast<const char*>(&valSize), sizeof(valSize));
+        datastream.write(value.data(), valSize);
+    }
+
     std::string binaryFilename = std::format("logs/{}.db", this->keyspaceName);
     std::ofstream writer(binaryFilename, std::ios::binary);
+
+    // Write stream contents to file, using compression if needed
     if (writer.is_open()) {
-        const char* MAGIC = "TDB";
-        size_t keyspaceSize = state.size();
-
-        writer.write(MAGIC, 3);
-        writer.write(reinterpret_cast<const char*>(&keyspaceSize), sizeof(keyspaceSize));
-
-        // Key-values
-        for (const auto& [key, value] : state) {
-            size_t keySize = key.size();
-            size_t valSize = value.size();
-
-            writer.write(reinterpret_cast<const char*>(&keySize), sizeof(keySize));
-            writer.write(key.data(), keySize);
-            writer.write(reinterpret_cast<const char*>(&valSize), sizeof(valSize));
-            writer.write(value.data(), valSize);
+        std::string serializedDatastream = datastream.str();
+        size_t dataSize = serializedDatastream.size();
+        if (dataSize > this->COMPRESSION_THRESHOLD) {
+            std::vector<uint8_t> input(serializedDatastream.begin(), serializedDatastream.end());
+            std::vector<uint16_t> compressedDatastream = this->compress(input);
+            dataSize = compressedDatastream.size() * sizeof(uint16_t);
+            writer.write(reinterpret_cast<const char*>(compressedDatastream.data()), dataSize);
+        }
+        else {
+            writer.write(serializedDatastream.data(), dataSize);
         }
         writer.close();
     }
@@ -158,6 +174,37 @@ void Log::compactLog() {
 
     // Write to binary snapshot as well
     this->writeBinarySnapshot(parseMap);
+}
+
+std::vector<uint16_t> Log::compress(const std::vector<uint8_t>& input) {
+    // Compress the binary-serialized compacted snapshot further using LZW compression
+    std::vector<uint16_t> encoded;
+    std::unordered_map<std::string, uint16_t> dict;
+    for (uint16_t i = 0; i < 256; i++) {
+        dict[std::string(1, static_cast<char>(i))] = i;
+    }
+
+    std::string curr;
+    uint16_t nextCode = 256;
+
+    for (uint8_t byte : input) {
+        char c = static_cast<char>(byte);
+        std::string temp = curr + c;
+        if (dict.count(temp)) {
+            curr = temp;
+        }
+        else {
+            encoded.push_back(dict[curr]);
+            dict[temp] = nextCode++; // Use current nextCode value, then increment
+            curr = std::string(1, c);
+        }
+    }
+
+    if (!curr.empty()) {
+        encoded.push_back(dict[curr]);
+    }
+
+    return encoded;
 }
 
 void Log::closeLog() {

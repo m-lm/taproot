@@ -77,12 +77,6 @@ void DB::loadFromLog() {
 
 void DB::display() {
     // Display the key value store in a readable format
-    std::string snapshotFilename = this->logger.getLatestSnapshot();
-    if (std::filesystem::exists(snapshotFilename) && std::filesystem::is_regular_file(snapshotFilename)) {
-        std::uintmax_t filesize = std::filesystem::file_size(snapshotFilename); // In bytes
-        const std::uintmax_t compressionThreshold = 10 * 1024 * 1024; // 10 MB in bytes
-        std::cout << std::format("\n[{}] @ ({} / {} uncompressed bytes)\n", snapshotFilename, filesize, compressionThreshold);
-    }
     std::cout << "\n============" << std::endl;
     std::cout << std::format("| Key-values for keyspace: '{}'\n", this->name) << std::endl;
     for (const auto& item : this->store) {
