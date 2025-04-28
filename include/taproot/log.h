@@ -24,7 +24,7 @@ class Log {
         std::string getLatestSnapshot();
         std::string getEarliestSnapshot();
         void rotateLogs();
-        void compactLog(const std::unordered_map<std::string, std::string>& state);
+        void compactLog(const std::unordered_map<std::string, std::string>& state, const bool hasBeenAltered);
         std::vector<uint16_t> compress(const std::vector<uint8_t>& input);
 
         void closeLog();

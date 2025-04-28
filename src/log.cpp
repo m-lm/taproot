@@ -126,7 +126,7 @@ std::string Log::getEarliestSnapshot() {
 void Log::rotateLogs() {
     // Manage DB Append-Only File (.aof) logs by rotating, archiving, deleting, or overwriting old logs. Limit max .aof files to 5 per keyspace.
     this->updateAofCount();
-    if (this->aofCount >= MAX_AOF_FILES) {
+    if (this->aofCount > MAX_AOF_FILES) {
         std::string snapshotFilename = this->getEarliestSnapshot();
         if (remove(snapshotFilename.c_str()) != 0 || std::filesystem::is_directory(snapshotFilename)) {
             std::perror("Cannot delete .aof file.");
@@ -144,10 +144,16 @@ void Log::rotateLogs() {
     }
 }
 
-void Log::compactLog(const std::unordered_map<std::string, std::string>& state) {
+void Log::compactLog(const std::unordered_map<std::string, std::string>& state, const bool hasBeenAltered) {
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
     // Also assumes no invalid commands were permitted into the log
+    if (!hasBeenAltered) {
+        // Skip writes if no changes have been made
+        return;
+    }
     std::string snapshotFilename = std::format("logs/{}_{}.aof", this->keyspaceName, getTimestamp());
+    std::string buffer;
+    buffer.reserve(10000000);
     if (this->logfile.is_open()) {
         throw std::runtime_error("Cannot compact logfile that is still open.");
     }
@@ -157,8 +163,10 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state) 
         std::ofstream writer(snapshotFilename);
         if (writer.is_open()) {
             for (const std::pair<const std::string, std::string>& pair : state) {
-                writer << std::format("put {} {}\n", pair.first, pair.second);
+                //buffer += std::format("put {} {}\n", pair.first, pair.second);
+                buffer += "put " + pair.first + " " + pair.second + "\n";
             }
+            writer << buffer;
             writer.close();
         }
     }

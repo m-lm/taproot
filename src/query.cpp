@@ -14,7 +14,7 @@ Query::Query(DB& database) : database(database) {
 Query::~Query() {
 }
 
-void Query::parseCommand(const std::string& command, const bool replay) {
+void Query::parseCommand(const std::string& command) {
     // Parses user input query to execute the appropriate command
     if (command.length() == 0 || isAllSpace(command)) {
         return;
@@ -30,7 +30,7 @@ void Query::parseCommand(const std::string& command, const bool replay) {
 
     if (op == "put" && tokens.size() == 3) {
         this->database.put(tokens[1], tokens[2]);
-        if (!replay) { // If replay is off, it will append commands to regular log file. Not advised for loadFromLog() on startup; use replay=true for loading.
+        if (!this->database.isReplaying()) { // If replay is off, it will append commands to regular log file. Not advised for loadFromLog() on startup; use replay=true for loading.
             this->database.getLogger().appendPut(tokens[1], tokens[2]);
         }
     }
@@ -40,7 +40,7 @@ void Query::parseCommand(const std::string& command, const bool replay) {
     }
     else if (op == "get" && tokens.size() == 2) {
         std::optional<std::string> value = this->database.get(tokens[1]);
-        if (!replay && value) {
+        if (!this->database.isReplaying() && value) {
             std::cout << *value << std::endl;
         }
     }

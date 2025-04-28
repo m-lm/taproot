@@ -14,6 +14,8 @@ class DB {
         std::string name;
         Log logger;
         std::unique_ptr<Query> query;
+        bool replaying;
+        bool hasBeenAltered;
 
     public:
         // Constructors and deconstructors
@@ -26,8 +28,8 @@ class DB {
 
         // Base functionality
         void put(const std::string& key, const std::string& value);
-        std::optional<std::string> get(const std::string& key) const;
         bool del(const std::string& key);
+        std::optional<std::string> get(const std::string& key) const;
 
         // Group data getters
         /*
@@ -35,6 +37,7 @@ class DB {
         std::vector<const std::string&> getValues() const;
         std::vector<const std::pair<std::string, std::string>> getItems() const;
         */
+        bool isReplaying();
         Log& getLogger();
         void loadFromLog();
 

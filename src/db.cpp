@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <chrono>
 
-DB::DB(const std::string& name) : name(name), logger(name) {
+DB::DB(const std::string& name) : name(name), logger(name), hasBeenAltered(false) {
     this->query = std::make_unique<Query>(*this);
     this->loadFromLog();
 }
@@ -30,6 +30,21 @@ std::string& DB::operator[](const std::string& key) {
 void DB::put(const std::string& key, const std::string& value) {
     // Add or update key-value pair
     this->store[key] = value;
+    if (!this->replaying) {
+        this->hasBeenAltered = true;
+    }
+}
+
+bool DB::del(const std::string& key) {
+    // Delete the key-value pair from the store
+    int status = this->store.erase(key);
+    if (status >= 1) {
+        if (!this->replaying) {
+            this->hasBeenAltered = true;
+        }
+        return true;
+    }
+    return false;
 }
 
 std::optional<std::string> DB::get(const std::string& key) const {
@@ -41,13 +56,9 @@ std::optional<std::string> DB::get(const std::string& key) const {
     return std::nullopt;
 }
 
-bool DB::del(const std::string& key) {
-    // Delete the key-value pair from the store
-    int status = this->store.erase(key);
-    if (status >= 1) {
-        return true;
-    }
-    return false;
+bool DB::isReplaying() {
+    // Get replay status
+    return this->replaying;
 }
 
 Log& DB::getLogger() {
@@ -67,7 +78,9 @@ void DB::loadFromLog() {
     std::string line;
     if (loader.is_open() && this->store.empty()) {
         while(getline(loader, line)) {
-            this->query->parseCommand(line, true);
+            this->replaying = true;
+            this->query->parseCommand(line);
+            this->replaying = false;
         }
         loader.close();
     }
@@ -90,7 +103,7 @@ void DB::shutdown() {
     // Shutdown log file access to allow for compaction. Typically, use on DB close
     this->logger.closeLog();
     auto start = std::chrono::high_resolution_clock::now();
-    this->logger.compactLog(this->store);
+    this->logger.compactLog(this->store, this->hasBeenAltered);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "Compaction took " << duration << std::endl;
