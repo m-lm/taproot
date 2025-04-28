@@ -1,3 +1,23 @@
 # Taproot
 
-Taproot is a simple key-value store written in C++ with minimal dependencies. 
+Taproot is a simple in-memory key-value store written in C++ with minimal dependencies. 
+
+### Walkthrough
+
+Taproot was developed to be a Redis-like clone for educational purposes with minimal dependencies. External libraries are only introduced if they are lightweight or otherwise convenient. In the process, I learned more about C++, system design, and data storage.
+
+The following is a brief walkthrough of how the system works and the reasoning behind certain design decisions.
+
+#### Interface
+Taproot exposes its functionality through two interfaces: client-server and CLI. The CLI supports basic query commands and administrative control of keyspaces, which are named collections of key-value pairs. Taproot uses the C++ standard hash table `unordered_map` for most workflows allowing fast O(1) read/write operations. However, because the data is not sorted, it prevents full querying and limits operations to the fundamental GET/PUT/DEL commands. Taproot is also a networked store and is thus able to provide functionality to clients through TCP sockets as a de-facto server.
+
+#### Storage
+Taproot uses built-in C++ hash tables found in the standard library and utilizes Redis-style log storage consisting of three components: changelogs, append-only files (AOFs), and binary snapshots. Changelogs are the equivalent of raw Redis append-only files, where all write commands (i.e., no GETs) are stored sequentially in a single `.log` file. Taproot considers this the human-readable history file. The `.aof` files are the append-only files which are essentially the compacted versions of the changelog. They include a timestamp in the file name which denotes the time at which it was written for backups and record-keeping. Taproot reads the latest "snapshot" `.aof` file for data replays, which acts as the persistence mechanism similar to Redis. Finally, there is a binary-serialized version of the latest `.aof` file which has the `.db` file extension and is known as the binary snapshot. This is a compact binary log file that is compressed using LZ4 past a certain file size threshold. The file size threshold was introduced to combat unnecessary overhead from compression for smaller files. Currently, it has no real purpose besides being a redundant copy.
+
+These logs are rotated to reduce the storage footprint. Specifically, Taproot uses compaction for the human-readable `.aof` files and compression for the binary equivalents. In addition, AOFs are limited to a set number of timestamped saves (default 5), past which the oldest one is deleted and a new one is inserted. The changelog is also archived at a predefined file size whereby Taproot retrieves the latest state from the last `.aof` snapshot and overwrites the old changelog, which is compressed and archived for posterity. Archiving the changelog cannot simply rely on compaction for write-heavy workloads where the absolute volume remains similar, so compression is also employed to prevent data bloat.
+
+#### Dependencies
+One aim of this project was to keep it lightweight in terms of dependencies. Taproot utilizes the Boost and LZ4 libraries to offload some of the tangential work that detracts from its didactic focus. At first, the LZW compression algorithm was implemented manually, and on a simple write test of 1,000,000 key-value pairs it resulted in a file size decrease of up to 80% when applied to the `.db` binary snapshot, presumably because of the highly redundant nature of the data. However, it soon became apparent that relying on hand-implemented solutions would be too inflexible and suboptimal. In addition, I wanted to switch to CMake/vcpkg as the dependency manager and build system for this project, so it seemed like a good opportunity to employ the lightweight LZ4 library along with the ubiquitous Boost. Since Taproot is a Redis-style store, it was decided that it was permissible to outsource the compression details to a proper library, as Redis does not typically use compression on its logs from what I have gathered.
+
+#### Future
+This project was intended to be an educational undertaking. In the the future, I plan to transfer to a more LSM-based storage a la LevelDB/RocksDB, using data structures such as skip lists. I am also interested in experimenting with multi-model data capabilities by augmenting the key-value core engine with abstracted document and possibly RDF layers.
