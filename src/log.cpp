@@ -11,15 +11,43 @@
 #include <cstdint>
 #include <sstream>
 #include <chrono>
+#include <filesystem>
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
     this->dbFilepath = std::format("logs/{}.db", this->keyspaceName);
     this->logFilepath = std::format("logs/{}.log", this->keyspaceName);
+    bool logExists = std::filesystem::exists(this->logFilepath);
     this->logfile.open(this->logFilepath, std::ios::app);
+    if (!logExists) {
+        this->catchupLog();
+    }
 }
 
 Log::~Log() {
+}
+
+void Log::catchupLog() {
+    // Rebuild start of log if it is missing based off of latest compacted AOF snapshot
+    std::cout << "HELLO" << std::endl;
+    std::unordered_map<std::string, std::string> parseMap;
+    std::string line;
+    std::string snapshotFilename = this->getLatestSnapshot();
+    if (std::filesystem::is_directory(snapshotFilename)) {
+        // Snapshot does not exist
+        return;
+    }
+    std::ifstream reader(snapshotFilename);
+    if (reader.is_open()) {
+        while (getline(reader, line)) {
+            std::vector<std::string> tokens = tokenize(line);
+            parseMap[tokens[1]] = tokens[2]; // Assume "put" commands since compacted
+        }
+        reader.close();
+    }
+    for (const std::pair<const std::string, std::string>& pair : parseMap) {
+        this->logfile << "put " + pair.first + " " + pair.second + "\n";
+    }
 }
 
 void Log::appendPut(const std::string& key, const std::string& value) {
@@ -127,8 +155,8 @@ void Log::rotateLogs() {
     // Manage DB Append-Only File (.aof) logs by rotating, archiving, deleting, or overwriting old logs. Limit max .aof files to 5 per keyspace.
     this->updateAofCount();
     if (this->aofCount > MAX_AOF_FILES) {
-        std::string snapshotFilename = this->getEarliestSnapshot();
-        if (remove(snapshotFilename.c_str()) != 0 || std::filesystem::is_directory(snapshotFilename)) {
+        std::string earliestSnapshotFilename = this->getEarliestSnapshot();
+        if (remove(earliestSnapshotFilename.c_str()) != 0 || std::filesystem::is_directory(earliestSnapshotFilename)) {
             std::perror("Cannot delete .aof file.");
             exit(1);
         }
@@ -139,7 +167,10 @@ void Log::rotateLogs() {
         size_t logFilesize = std::filesystem::file_size(this->logFilepath);
         if (logFilesize > ROTATION_THRESHOLD) {
             // TODO: Archive old .log file and compress using LZ4 on human-readable
-            std::filesystem::copy(this->getLatestSnapshot(), this->logFilepath, std::filesystem::copy_options::overwrite_existing); // Duplicate and replace/fill, not rename
+            std::string latestSnapshotFilename = this->getLatestSnapshot();
+            if (!std::filesystem::is_directory(latestSnapshotFilename)) {
+                std::filesystem::copy(latestSnapshotFilename, this->logFilepath, std::filesystem::copy_options::overwrite_existing); // Duplicate and replace/fill, not rename
+            }
         }
     }
 }
@@ -163,7 +194,6 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
         std::ofstream writer(snapshotFilename);
         if (writer.is_open()) {
             for (const std::pair<const std::string, std::string>& pair : state) {
-                //buffer += std::format("put {} {}\n", pair.first, pair.second);
                 buffer += "put " + pair.first + " " + pair.second + "\n";
             }
             writer << buffer;

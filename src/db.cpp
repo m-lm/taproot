@@ -23,7 +23,7 @@ DB::~DB() {
 }
 
 std::string& DB::operator[](const std::string& key) {
-    // Overloaded [] operator for direct use on DB object. Returns a reference to string so it can be modified.
+    // Overloaded [] operator for direct use on DB object. Returns a reference to string so it can be modified
     return this->store[key];
 }
 
