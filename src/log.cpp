@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <sstream>
+#include <chrono>
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
@@ -143,7 +144,7 @@ void Log::rotateLogs() {
     }
 }
 
-void Log::compactLog() {
+void Log::compactLog(const std::unordered_map<std::string, std::string>& state) {
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
     // Also assumes no invalid commands were permitted into the log
     std::string snapshotFilename = std::format("logs/{}_{}.aof", this->keyspaceName, getTimestamp());
@@ -151,30 +152,11 @@ void Log::compactLog() {
         throw std::runtime_error("Cannot compact logfile that is still open.");
     }
 
-    std::unordered_map<std::string, std::string> parseMap;
-    std::string line;
-    std::ifstream reader(this->logFilepath);
-    if (reader.is_open()) {
-        while (getline(reader, line)) {
-            std::vector<std::string> tokens = tokenize(line);
-            if (tokens[0] == "put") {
-                parseMap[tokens[1]] = tokens[2];
-            }
-            else if (tokens[0] == "del") {
-                parseMap.erase(tokens[1]);
-            }
-            else {
-                throw std::runtime_error("Invalid operator keyword detected in logfile.");
-            }
-        }
-        reader.close();
-    }
-
     // Write to timestamped snapshot (replayability)
-    if (!parseMap.empty()) {
+    if (!state.empty()) {
         std::ofstream writer(snapshotFilename);
         if (writer.is_open()) {
-            for (const std::pair<const std::string, std::string>& pair : parseMap) {
+            for (const std::pair<const std::string, std::string>& pair : state) {
                 writer << std::format("put {} {}\n", pair.first, pair.second);
             }
             writer.close();
@@ -182,7 +164,7 @@ void Log::compactLog() {
     }
 
     // Write to binary snapshot as well
-    this->writeBinarySnapshot(parseMap);
+    this->writeBinarySnapshot(state);
 }
 
 std::vector<uint16_t> Log::compress(const std::vector<uint8_t>& input) {

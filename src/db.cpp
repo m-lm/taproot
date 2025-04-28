@@ -7,6 +7,7 @@
 #include <format>
 #include <utility>
 #include <filesystem>
+#include <chrono>
 
 DB::DB(const std::string& name) : name(name), logger(name) {
     this->query = std::make_unique<Query>(*this);
@@ -88,6 +89,10 @@ void DB::display() {
 void DB::shutdown() {
     // Shutdown log file access to allow for compaction. Typically, use on DB close
     this->logger.closeLog();
-    this->logger.compactLog();
+    auto start = std::chrono::high_resolution_clock::now();
+    this->logger.compactLog(this->store);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Compaction took " << duration << std::endl;
     this->logger.rotateLogs();
 }
