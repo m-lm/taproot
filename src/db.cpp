@@ -70,22 +70,38 @@ void DB::loadFromLog() {
     // Replay the commands from the compacted log to fill the store with data
     // Note: this loads from the snapshot, not the full changelog
     std::string snapshotFilename = this->logger.getLatestSnapshot();
-    if (!std::filesystem::exists(snapshotFilename)) {
+    if (!std::filesystem::exists(snapshotFilename) || std::filesystem::is_directory(snapshotFilename)) {
         std::cout << "NOTE: replay snapshot not found." << std::endl;
-        return;
-    }
-    std::ifstream loader(snapshotFilename);
-    std::string line;
-    if (loader.is_open() && this->store.empty()) {
-        while(getline(loader, line)) {
-            this->replaying = true;
-            this->query->parseCommand(line);
-            this->replaying = false;
+        std::string logFilename = std::format("logs/{}.log", this->name);
+        if (!std::filesystem::exists(snapshotFilename)) {
+            std::cout << "NOTE: changelog not found." << std::endl;
+            return;
         }
-        loader.close();
+        std::ifstream loader(logFilename);
+        std::string line;
+        if (loader.is_open() && this->store.empty()) {
+            while(getline(loader, line)) {
+                this->replaying = true;
+                this->query->parseCommand(line);
+                this->replaying = false;
+            }
+            loader.close();
+        }
     }
     else {
-        std::cout << "NOTE: either log loader isn't open, or the store is nonempty." << std::endl;
+        std::ifstream loader(snapshotFilename);
+        std::string line;
+        if (loader.is_open() && this->store.empty()) {
+            while(getline(loader, line)) {
+                this->replaying = true;
+                this->query->parseCommand(line);
+                this->replaying = false;
+            }
+            loader.close();
+        }
+        else {
+            std::cout << "NOTE: either log loader isn't open, or the store is nonempty." << std::endl;
+        }
     }
 }
 

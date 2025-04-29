@@ -29,7 +29,6 @@ Log::~Log() {
 
 void Log::catchupLog() {
     // Rebuild start of log if it is missing based off of latest compacted AOF snapshot
-    std::cout << "HELLO" << std::endl;
     std::unordered_map<std::string, std::string> parseMap;
     std::string line;
     std::string snapshotFilename = this->getLatestSnapshot();
@@ -178,8 +177,9 @@ void Log::rotateLogs() {
 void Log::compactLog(const std::unordered_map<std::string, std::string>& state, const bool hasBeenAltered) {
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
     // Also assumes no invalid commands were permitted into the log
-    if (!hasBeenAltered) {
-        // Skip writes if no changes have been made
+    std::string latestSnapshotFilename = this->getLatestSnapshot();
+    if (!hasBeenAltered && !std::filesystem::is_directory(latestSnapshotFilename)) {
+        // Skip writes if no changes have been made, unless no snapshots are saved, in which case generate one
         return;
     }
     std::string snapshotFilename = std::format("logs/{}_{}.aof", this->keyspaceName, getTimestamp());
