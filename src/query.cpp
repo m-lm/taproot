@@ -20,14 +20,8 @@ void Query::parseCommand(const std::string& command) {
         return;
     }
 
-    std::unordered_map<std::string, std::string> tips = {
-        {"put", "put <KEY> <VALUE>"},
-        {"get", "get <KEY>"},
-        {"del", "del <KEY>"},
-    };
     const std::vector<std::string> tokens = tokenize(command);
     const std::string op = tokens[0];
-
     if (op == "put" && tokens.size() == 3) {
         this->database.put(tokens[1], tokens[2]);
         if (!this->database.isReplaying()) { // If replay is off, it will append commands to regular log file. Not advised for loadFromLog() on startup; use replay=true for loading.
@@ -45,6 +39,11 @@ void Query::parseCommand(const std::string& command) {
         }
     }
     else {
+        std::unordered_map<std::string, std::string> tips = {
+            {"put", "put <KEY> <VALUE>"},
+            {"get", "get <KEY>"},
+            {"del", "del <KEY>"},
+        };
         if (tips.count(op) > 0) {
             std::cout << std::format("\nInvalid operator usage: '{}' ({})", op, tips[op]) << std::endl;
         }

@@ -70,7 +70,7 @@ void DB::loadFromLog() {
     // Replay the commands from the compacted log to fill the store with data
     // Note: this loads from the snapshot, not the full changelog
     std::string snapshotFilename = this->logger.getLatestSnapshot();
-    if (!std::filesystem::exists(snapshotFilename) || std::filesystem::is_directory(snapshotFilename)) {
+    if (!std::filesystem::exists(snapshotFilename) || !std::filesystem::is_regular_file(snapshotFilename)) {
         std::cout << "NOTE: replay snapshot not found." << std::endl;
         std::string logFilename = std::format("logs/{}.log", this->name);
         if (!std::filesystem::exists(snapshotFilename)) {
@@ -122,6 +122,6 @@ void DB::shutdown() {
     this->logger.compactLog(this->store, this->hasBeenAltered);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "Compaction took " << duration << std::endl;
+    std::cout << "write " << duration << std::endl;
     this->logger.rotateLogs();
 }

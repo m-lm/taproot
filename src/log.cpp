@@ -32,7 +32,7 @@ void Log::catchupLog() {
     std::unordered_map<std::string, std::string> parseMap;
     std::string line;
     std::string snapshotFilename = this->getLatestSnapshot();
-    if (std::filesystem::is_directory(snapshotFilename)) {
+    if (!std::filesystem::is_regular_file(snapshotFilename)) {
         // Snapshot does not exist
         return;
     }
@@ -155,19 +155,19 @@ void Log::rotateLogs() {
     this->updateAofCount();
     if (this->aofCount > MAX_AOF_FILES) {
         std::string earliestSnapshotFilename = this->getEarliestSnapshot();
-        if (remove(earliestSnapshotFilename.c_str()) != 0 || std::filesystem::is_directory(earliestSnapshotFilename)) {
+        if (remove(earliestSnapshotFilename.c_str()) != 0 || !std::filesystem::is_regular_file(earliestSnapshotFilename)) {
             std::perror("Cannot delete .aof file.");
             exit(1);
         }
     }
 
     // Rewrite whole log to latest compacted state when threshold is reached. Optionally archive old log
-    if (std::filesystem::exists(this->logFilepath) && std::filesystem::is_regular_file(this->logFilepath)) {
+    if (std::filesystem::is_regular_file(this->logFilepath)) {
         size_t logFilesize = std::filesystem::file_size(this->logFilepath);
         if (logFilesize > ROTATION_THRESHOLD) {
             // TODO: Archive old .log file and compress using LZ4 on human-readable
             std::string latestSnapshotFilename = this->getLatestSnapshot();
-            if (!std::filesystem::is_directory(latestSnapshotFilename)) {
+            if (std::filesystem::is_regular_file(latestSnapshotFilename)) {
                 std::filesystem::copy(latestSnapshotFilename, this->logFilepath, std::filesystem::copy_options::overwrite_existing); // Duplicate and replace/fill, not rename
             }
         }
@@ -178,7 +178,7 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
     // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
     // Also assumes no invalid commands were permitted into the log
     std::string latestSnapshotFilename = this->getLatestSnapshot();
-    if (!hasBeenAltered && !std::filesystem::is_directory(latestSnapshotFilename)) {
+    if (!hasBeenAltered && std::filesystem::is_regular_file(latestSnapshotFilename)) {
         // Skip writes if no changes have been made, unless no snapshots are saved, in which case generate one
         return;
     }
