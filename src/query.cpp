@@ -46,14 +46,15 @@ void Query::parseCommand(const std::string& command) {
         }
         std::vector<std::optional<std::string>> values = this->database.mget(keys);
         if (!this->database.isReplaying() && !values.empty()) {
-            printVector(values);
+            this->database.display(keys);
         }
     }
     else {
         std::unordered_map<std::string, std::string> tips = {
             {"put", "put <KEY> <VALUE>"},
-            {"get", "get <KEY>"},
             {"del", "del <KEY>"},
+            {"get", "get <KEY>"},
+            {"mget", "mget <KEY1> <KEY2> ... <KEYN>"},
         };
         if (tips.count(op) > 0) {
             std::cout << std::format("\nInvalid operator usage: '{}' ({})", op, tips[op]) << std::endl;

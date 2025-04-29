@@ -26,3 +26,17 @@ void printVector(const std::vector<std::optional<T>>& vector) {
         }
     }
 }
+
+template <typename T>
+bool contains(const std::vector<T>& vector, const T& value) {
+    // Checks if the vector contains value as an element
+    return std::find(vector.begin(), vector.end(), value) != vector.end();
+}
+
+template <typename T>
+bool contains(const std::vector<std::optional<T>>& vector, const T& value) {
+    // Checks if the vector contains value as an element when working with optional types
+    return std::any_of(vector.begin(), vector.end(), [&value](const std::optional<T>& opt) {
+        return opt && *opt == value;
+    });
+}

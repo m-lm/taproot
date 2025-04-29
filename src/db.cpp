@@ -1,6 +1,7 @@
 #include "taproot/db.h"
 #include "taproot/log.h"
 #include "taproot/query.h"
+#include "taproot/utils.h"
 #include <string>
 #include <iostream>
 #include <unordered_map>
@@ -110,11 +111,22 @@ void DB::loadFromLog() {
 }
 
 void DB::display() {
-    // Display the key value store in a readable format
+    // Display the key-value store in a readable format
     std::cout << "\n============" << std::endl;
     std::cout << std::format("| Key-values for keyspace: '{}'\n", this->name) << std::endl;
     for (const auto& item : this->store) {
         std::cout << std::format("{}: {}", item.first, item.second) << std::endl;
+    }
+    std::cout << "============" << std::endl;
+}
+
+void DB::display(const std::vector<std::string>& keys) {
+    // Display the key-value store in a readable format according to mget keys
+    std::cout << "\n============" << std::endl;
+    for (const auto& item : this->store) {
+        if (contains(keys, item.first)) {
+            std::cout << std::format("{}: {}", item.first, item.second) << std::endl;
+        }
     }
     std::cout << "============" << std::endl;
 }

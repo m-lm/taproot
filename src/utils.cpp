@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <chrono>
 #include <ctime>
+#include <algorithm>
 
 bool isAllSpace(const std::string& input) {
     // Check if input string is all whitespace

@@ -41,6 +41,7 @@ class DB {
 
         // Console print
         void display();
+        void display(const std::vector<std::string>& keys);
 
         // Shutdown key-value store
         void shutdown();
