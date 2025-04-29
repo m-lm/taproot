@@ -57,6 +57,7 @@ void Log::appendPut(const std::string& key, const std::string& value) {
     else {
         std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
     }
+    this->logfile.flush();
 }
 
 void Log::appendDelete(const std::string& key) {
@@ -67,6 +68,7 @@ void Log::appendDelete(const std::string& key) {
     else {
         std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
     }
+    this->logfile.flush();
 }
 
 void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state) {
