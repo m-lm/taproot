@@ -17,9 +17,10 @@ class Log {
         Log(const std::string& filename);
         virtual ~Log();
 
+        enum class Command { PUT, DEL };
+
         void catchupLog();
-        void appendPut(const std::string& key, const std::string& value);
-        void appendDelete(const std::string& key);
+        void appendCommand(Command cmd, const std::string& key, const std::string& value = "");
         void writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state);
         void updateAofCount();
         std::string getLatestSnapshot();

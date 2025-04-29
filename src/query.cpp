@@ -25,12 +25,12 @@ void Query::parseCommand(const std::string& command) {
     if (op == "put" && tokens.size() == 3) {
         this->database.put(tokens[1], tokens[2]);
         if (!this->database.isReplaying()) { // If replay is off, it will append commands to regular log file. Not advised for loadFromLog() on startup; use replay=true for loading.
-            this->database.getLogger().appendPut(tokens[1], tokens[2]);
+            this->database.getLogger().appendCommand(Log::Command::PUT, tokens[1], tokens[2]);
         }
     }
     else if (op == "del" && tokens.size() == 2) {
         this->database.del(tokens[1]);
-        this->database.getLogger().appendDelete(tokens[1]);
+        this->database.getLogger().appendCommand(Log::Command::DEL, tokens[1]);
     }
     else if (op == "get" && tokens.size() == 2) {
         std::optional<std::string> value = this->database.get(tokens[1]);

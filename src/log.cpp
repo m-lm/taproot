@@ -49,25 +49,26 @@ void Log::catchupLog() {
     }
 }
 
-void Log::appendPut(const std::string& key, const std::string& value) {
-    // Append the "put" query to the log file
-    if (this->logfile.is_open()) {
-        this->logfile << std::format("put {} {}\n", key, value);
-    }
-    else {
+void Log::appendCommand(Command cmd, const std::string& key, const std::string& value) {
+    // Append and flush the "put"/"del" query to the log file
+    if (!this->logfile.is_open()) {
         std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
+        return;
     }
-    this->logfile.flush();
-}
 
-void Log::appendDelete(const std::string& key) {
-    // Append the "del" query to the log file
-    if (this->logfile.is_open()) {
-        this->logfile << std::format("del {}\n", key);
+    std::string line;
+    line.reserve(256);
+    switch (cmd) {
+        case Command::PUT:
+            line = "put " + key + " " + value + "\n";
+            break;
+        case Command::DEL:
+            line = "del " + key + "\n";
+            break;
+        default:
+            throw std::runtime_error("Cannot recognize command to be appended.");
     }
-    else {
-        std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
-    }
+    this->logfile.write(line.data(), line.size());
     this->logfile.flush();
 }
 
