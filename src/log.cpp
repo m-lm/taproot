@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <utility>
-#include <cstdio>
 #include <cstdint>
 #include <sstream>
 #include <chrono>
@@ -158,7 +157,7 @@ void Log::rotateLogs() {
     this->updateAofCount();
     if (this->aofCount > MAX_AOF_FILES) {
         std::string earliestSnapshotFilename = this->getEarliestSnapshot();
-        if (remove(earliestSnapshotFilename.c_str()) != 0 || !std::filesystem::is_regular_file(earliestSnapshotFilename)) {
+        if (!std::filesystem::remove(earliestSnapshotFilename)) {
             std::perror("Cannot delete .aof file.");
             exit(1);
         }

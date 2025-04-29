@@ -118,10 +118,6 @@ void DB::display() {
 void DB::shutdown() {
     // Shutdown log file access to allow for compaction. Typically, use on DB close
     this->logger.closeLog();
-    auto start = std::chrono::high_resolution_clock::now();
     this->logger.compactLog(this->store, this->hasBeenAltered);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "write " << duration << std::endl;
     this->logger.rotateLogs();
 }
