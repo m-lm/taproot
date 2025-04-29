@@ -22,11 +22,6 @@ DB::~DB() {
     this->shutdown();
 }
 
-std::string& DB::operator[](const std::string& key) {
-    // Overloaded [] operator for direct use on DB object. Returns a reference to string so it can be modified
-    return this->store[key];
-}
-
 void DB::put(const std::string& key, const std::string& value) {
     // Add or update key-value pair
     this->store[key] = value;
@@ -54,6 +49,15 @@ std::optional<std::string> DB::get(const std::string& key) const {
         return iter->second;
     }
     return std::nullopt;
+}
+
+std::vector<std::optional<std::string>> DB::mget(const std::vector<std::string>& keys) const {
+    // Get the values of multiple keys in a list
+    std::vector<std::optional<std::string>> results;
+    for (const auto& key : keys) {
+        results.push_back(this->get(key));
+    }
+    return results;
 }
 
 bool DB::isReplaying() {

@@ -16,6 +16,7 @@ Query::~Query() {
 
 void Query::parseCommand(const std::string& command) {
     // Parses user input query to execute the appropriate command
+    // TODO: switch to enum for commands
     if (command.length() == 0 || isAllSpace(command)) {
         return;
     }
@@ -36,6 +37,16 @@ void Query::parseCommand(const std::string& command) {
         std::optional<std::string> value = this->database.get(tokens[1]);
         if (!this->database.isReplaying() && value) {
             std::cout << *value << std::endl;
+        }
+    }
+    else if (op == "mget" && tokens.size() >= 3) {
+        std::vector<std::string> keys;
+        for (size_t i = 1; i < tokens.size(); i++) {
+            keys.push_back(tokens[i]);
+        }
+        std::vector<std::optional<std::string>> values = this->database.mget(keys);
+        if (!this->database.isReplaying() && !values.empty()) {
+            printVector(values);
         }
     }
     else {

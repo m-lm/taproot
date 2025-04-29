@@ -23,13 +23,11 @@ class DB {
         DB(const std::string& name, const std::unordered_map<std::string, std::string>& store);
         virtual ~DB();
 
-        // Operator overloading
-        std::string& operator[](const std::string& key);
-
         // Base functionality
         void put(const std::string& key, const std::string& value);
         bool del(const std::string& key);
         std::optional<std::string> get(const std::string& key) const;
+        std::vector<std::optional<std::string>> mget(const std::vector<std::string>& keys) const;
 
         // Group data getters
         /*
