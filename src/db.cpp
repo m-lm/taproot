@@ -76,10 +76,10 @@ void DB::loadFromLog() {
     // Note: this loads from the snapshot, not the full changelog
     std::string snapshotFilename = this->logger.getLatestSnapshot();
     if (!std::filesystem::exists(snapshotFilename) || !std::filesystem::is_regular_file(snapshotFilename)) {
-        std::cout << "NOTE: replay snapshot not found." << std::endl;
+        std::cout << "Note: Replay snapshot not found." << std::endl;
         std::string logFilename = std::format("logs/{}.log", this->name);
         if (!std::filesystem::exists(snapshotFilename)) {
-            std::cout << "NOTE: changelog not found." << std::endl;
+            std::cout << "Note: Changelog not found." << std::endl;
             return;
         }
         std::ifstream loader(logFilename);
@@ -105,7 +105,7 @@ void DB::loadFromLog() {
             loader.close();
         }
         else {
-            std::cout << "NOTE: either log loader isn't open, or the store is nonempty." << std::endl;
+            std::cout << "Note: Either log loader isn't open, or the store is nonempty." << std::endl;
         }
     }
 }
@@ -115,7 +115,7 @@ void DB::display() {
     std::cout << "\n============" << std::endl;
     std::cout << std::format("| Key-values for keyspace: '{}'\n", this->name) << std::endl;
     for (const auto& item : this->store) {
-        std::cout << std::format("{}: {}", item.first, item.second) << std::endl;
+        std::cout << item.first + ": " + item.second << std::endl;
     }
     std::cout << "============" << std::endl;
 }
@@ -125,7 +125,7 @@ void DB::display(const std::vector<std::string>& keys) {
     std::cout << "\n============" << std::endl;
     for (const auto& item : this->store) {
         if (contains(keys, item.first)) {
-            std::cout << std::format("{}: {}", item.first, item.second) << std::endl;
+            std::cout << item.first + ": " + item.second << std::endl;
         }
     }
     std::cout << "============" << std::endl;

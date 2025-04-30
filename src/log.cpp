@@ -46,7 +46,6 @@ void Log::startFlushThread() {
     this->flushThread = std::thread([this]() {
         std::unique_lock<std::mutex> condivarLock(this->condivarMutex);
         while (!this->stopFlushThread) {
-            // std::this_thread::sleep_for(std::chrono::seconds(1));
             this->condivar.wait_for(condivarLock, std::chrono::seconds(1));
 
             std::string localBuffer;
