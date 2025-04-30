@@ -60,7 +60,7 @@ void Query::parseCommand(const std::string& command) {
             std::cout << std::format("\nInvalid operator usage: '{}' ({})", op, tips[op]) << std::endl;
         }
         else {
-            std::cout << "\nPlease use 'put', 'get', and 'del' operators as first keyword." << std::endl;
+            std::cout << "\nPlease use 'put', 'get', and 'del' operators as first keyword, or use 'help' for more." << std::endl;
         }
         return;
     }

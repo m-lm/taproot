@@ -1,5 +1,6 @@
 #include "taproot/log.h"
 #include "taproot/utils.h"
+#include "lz4.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -19,6 +20,11 @@
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
+
+    const char* input = "This is a test string for LZ4 compression!";
+    size_t inputSize = strlen(input) + 1;
+    std::vector<char> compressedData(LZ4_compressBound(inputSize));
+
     this->dbFilepath = std::format("logs/{}.db", this->keyspaceName);
     this->logFilepath = std::format("logs/{}.log", this->keyspaceName);
 
