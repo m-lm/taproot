@@ -11,19 +11,59 @@
 #include <sstream>
 #include <chrono>
 #include <filesystem>
+#include <mutex>
+#include <atomic>
+#include <thread>
+#include <fcntl.h>
+#include <unistd.h> 
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
     // Logs (full changelogs) are owned by DB (store) objects
     this->dbFilepath = std::format("logs/{}.db", this->keyspaceName);
     this->logFilepath = std::format("logs/{}.log", this->keyspaceName);
+
+    this->fileDescriptor = ::open(this->logFilepath.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (this->fileDescriptor == -1) {
+        throw std::runtime_error("Failed to open log file descripter.");
+    }
+
     bool logExists = std::filesystem::exists(this->logFilepath);
     this->logfile.open(this->logFilepath, std::ios::app);
     if (!logExists) {
         this->catchupLog();
     }
+    this->startFlushThread();
 }
 
 Log::~Log() {
+    if (!this->stopFlushThread) {
+        this->closeLog();
+    }
+}
+
+void Log::startFlushThread() {
+    // Start background thread for the append buffer when writing commands to changelog for everysec
+    this->flushThread = std::thread([this]() {
+        std::unique_lock<std::mutex> condivarLock(this->condivarMutex);
+        while (!this->stopFlushThread) {
+            // std::this_thread::sleep_for(std::chrono::seconds(1));
+            this->condivar.wait_for(condivarLock, std::chrono::seconds(1));
+
+            std::string localBuffer;
+            {
+                // Introduce curly-brace block here for scope; once out-of-scope, mutex deconstructs and unlocks
+                std::lock_guard<std::mutex> lock(this->logMutex);
+                if (this->logBuffer.empty()) {
+                    continue;
+                }
+                localBuffer.swap(this->logBuffer);
+            }
+
+            this->logfile.write(localBuffer.data(), localBuffer.size());
+            this->logfile.flush();
+            ::fsync(this->fileDescriptor);
+        }
+    });
 }
 
 void Log::catchupLog() {
@@ -67,8 +107,8 @@ void Log::appendCommand(Command cmd, const std::string& key, const std::string& 
         default:
             throw std::runtime_error("Cannot recognize command to be appended.");
     }
-    this->logfile.write(line.data(), line.size());
-    this->logfile.flush();
+    std::lock_guard<std::mutex> lock(this->logMutex);
+    this->logBuffer += line;
 }
 
 void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state) {
@@ -99,10 +139,14 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
         std::string serializedDatastream = datastream.str();
         size_t dataSize = serializedDatastream.size();
         if (dataSize > this->COMPRESSION_THRESHOLD) {
+            auto start = std::chrono::high_resolution_clock::now();
             std::vector<uint8_t> input(serializedDatastream.begin(), serializedDatastream.end());
             std::vector<uint16_t> compressedDatastream = this->compress(input);
             dataSize = compressedDatastream.size() * sizeof(uint16_t);
             writer.write(reinterpret_cast<const char*>(compressedDatastream.data()), dataSize);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            std::cout << "Binary compressed in " << duration << std::endl;
         }
         else {
             writer.write(serializedDatastream.data(), dataSize);
@@ -153,7 +197,7 @@ std::string Log::getEarliestSnapshot() {
 }
 
 void Log::rotateLogs() {
-    // Manage DB Append-Only File (.aof) logs by rotating, archiving, deleting, or overwriting old logs. Limit max .aof files to 5 per keyspace.
+    // Manage DB Append-Only File (.aof) logs by rotating, archiving, deleting, or overwriting old logs. Limit max .aof files to 5 per keyspace
     this->updateAofCount();
     if (this->aofCount > MAX_AOF_FILES) {
         std::string earliestSnapshotFilename = this->getEarliestSnapshot();
@@ -239,8 +283,29 @@ std::vector<uint16_t> Log::compress(const std::vector<uint8_t>& input) {
 }
 
 void Log::closeLog() {
-    // Close the logfile
+    // Close the logfile including file descriptor and threads
+    this->stopFlushThread = true;
+    this->condivar.notify_one(); // If thread in between 1s interval, wake to close immediately
+    if (flushThread.joinable()) {
+        flushThread.join();
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(this->logMutex);
+        if (!this->logBuffer.empty()) {
+            // Check if a changelog append was added to buffer one final time
+            this->logfile.write(this->logBuffer.data(), this->logBuffer.size());
+            this->logfile.flush();
+            ::fsync(this->fileDescriptor);
+            this->logBuffer.clear();
+        }
+    }
+
     if (this->logfile.is_open()) {
         this->logfile.close();
+    }
+    if (this->fileDescriptor != -1) {
+        ::close(this->fileDescriptor);
+        this->fileDescriptor = -1;
     }
 }

@@ -1,6 +1,9 @@
 #pragma once
 #include <fstream>
 #include <vector>
+#include <mutex>
+#include <atomic>
+#include <thread>
 
 class Log {
     protected:
@@ -13,12 +16,21 @@ class Log {
         size_t aofCount;
         std::ofstream logfile;
 
+        std::string logBuffer;
+        std::mutex logMutex;
+        std::thread flushThread;
+        std::atomic<bool> stopFlushThread = false;
+        int fileDescriptor = -1;
+        std::mutex condivarMutex;
+        std::condition_variable condivar;
+
     public:
         Log(const std::string& filename);
         virtual ~Log();
 
         enum class Command { PUT, DEL };
 
+        void startFlushThread();
         void catchupLog();
         void appendCommand(Command cmd, const std::string& key, const std::string& value = "");
         void writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state);
