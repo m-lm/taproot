@@ -23,3 +23,17 @@ target_include_directories(taproot PRIVATE
 )
 
 target_link_libraries(taproot PRIVATE lz4)
+
+add_executable(test
+  tests/test.cpp
+  src/db.cpp
+  src/log.cpp
+  src/query.cpp
+  src/utils.cpp
+  third-party/lz4/lz4.c
+)
+
+target_include_directories(test PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/third-party/lz4
+)

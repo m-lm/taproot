@@ -14,7 +14,7 @@
 const size_t TOTAL_WRITES = 1000000;
 
 std::pair<std::string, std::string> generateSample(size_t length = 96, bool random = true) {
-    // Generates dummy data for key-value pairs
+    // Generate dummy data for key-value pairs
     std::string key(16, '\0');
     std::string val(length, '\0');
 
