@@ -6,7 +6,7 @@ project(TaprootDB VERSION 1.0
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(lz4 STATIC third_party/lz4/lz4.c)
+add_library(lz4 STATIC third-party/lz4/lz4.c)
 
 add_executable(taproot
   src/main.cpp
@@ -14,12 +14,12 @@ add_executable(taproot
   src/log.cpp
   src/query.cpp
   src/utils.cpp
-  third_party/lz4/lz4.c
+  third-party/lz4/lz4.c
 )
 
 target_include_directories(taproot PRIVATE
   ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/third_party/lz4
+  ${CMAKE_SOURCE_DIR}/third-party/lz4
 )
 
 target_link_libraries(taproot PRIVATE lz4)
@@ -30,10 +30,10 @@ add_executable(test
   src/log.cpp
   src/query.cpp
   src/utils.cpp
-  third_party/lz4/lz4.c
+  third-party/lz4/lz4.c
 )
 
 target_include_directories(test PRIVATE
   ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/third_party/lz4
+  ${CMAKE_SOURCE_DIR}/third-party/lz4
 )
