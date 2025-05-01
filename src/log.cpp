@@ -137,19 +137,36 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
     // Write stream contents to file, using compression if needed
     if (writer.is_open()) {
         std::string serializedDatastream = datastream.str();
-        size_t dataSize = serializedDatastream.size();
-        if (dataSize > this->COMPRESSION_THRESHOLD) {
+        size_t serialSize = serializedDatastream.size();
+
+        if (serialSize > this->COMPRESSION_THRESHOLD) {
+            // Serialized final state passes threshold, so attempt to compress
             auto start = std::chrono::high_resolution_clock::now();
+
             std::vector<uint8_t> input(serializedDatastream.begin(), serializedDatastream.end());
-            std::vector<uint16_t> compressedDatastream = this->compress(input);
-            dataSize = compressedDatastream.size() * sizeof(uint16_t);
-            writer.write(reinterpret_cast<const char*>(compressedDatastream.data()), dataSize);
+            std::vector<uint8_t> compressedDatastream = this->compress(input);
+            size_t compressedSize = compressedDatastream.size();
+            size_t uncompressedSize = input.size();
+            uint8_t flag = (compressedSize < uncompressedSize) ? 1 : 0; // 1 if compression works; write to beginning of file
+            writer.write(reinterpret_cast<const char*>(&flag), 1);
+            if (flag) {
+                // Compression was effective enough
+                writer.write(reinterpret_cast<const char*>(&uncompressedSize), sizeof(uncompressedSize)); // Original size for future decompression
+                writer.write(reinterpret_cast<const char*>(compressedDatastream.data()), static_cast<std::streamsize>(compressedSize));
+                std::cout << "Did compress" << std::endl;
+            }
+            else {
+                // Compression did not do anything
+                writer.write(reinterpret_cast<const char*>(input.data()), static_cast<std::streamsize>(uncompressedSize));
+                std::cout << "Did not compress" << std::endl;
+            }
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
             std::cout << "Binary compressed in " << duration << std::endl;
         }
         else {
-            writer.write(serializedDatastream.data(), dataSize);
+            // If not state not big enough to compress, just serialize and write to .db
+            writer.write(serializedDatastream.data(), static_cast<std::streamsize>(serialSize));
         }
         writer.close();
     }
@@ -213,7 +230,8 @@ void Log::rotateLogs() {
         if (logFilesize > ROTATION_THRESHOLD) {
             // TODO: Archive old .log file and compress using LZ4 on human-readable
             std::string latestSnapshotFilename = this->getLatestSnapshot();
-            if (std::filesystem::is_regular_file(latestSnapshotFilename)) {
+            size_t latestSnapshotFilesize = std::filesystem::file_size(latestSnapshotFilename);
+            if (std::filesystem::is_regular_file(latestSnapshotFilename) && logFilesize > latestSnapshotFilesize) {
                 std::filesystem::copy(latestSnapshotFilename, this->logFilepath, std::filesystem::copy_options::overwrite_existing); // Duplicate and replace/fill, not rename
             }
         }
@@ -251,35 +269,25 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
     this->writeBinarySnapshot(state);
 }
 
-std::vector<uint16_t> Log::compress(const std::vector<uint8_t>& input) {
-    // Compress the binary-serialized compacted snapshot further using LZW compression
-    std::vector<uint16_t> encoded;
-    std::unordered_map<std::string, uint16_t> dict;
-    for (uint16_t i = 0; i < 256; i++) {
-        dict[std::string(1, static_cast<char>(i))] = i;
+std::vector<uint8_t> Log::compress(const std::vector<uint8_t>& input) {
+    // Wrapper to compress the binary-serialized compacted snapshot further using LZ4 compression
+    if (input.empty()) {
+        return {};
     }
 
-    std::string curr;
-    uint16_t nextCode = 256;
+    int maxCompressedSize = LZ4_compressBound(input.size());
+    std::vector<uint8_t> compressed(maxCompressedSize);
+    int compressedSize = LZ4_compress_default(reinterpret_cast<const char*>(input.data()),
+        reinterpret_cast<char*>(compressed.data()),
+        static_cast<int>(input.size()),
+        maxCompressedSize);
 
-    for (uint8_t byte : input) {
-        char c = static_cast<char>(byte);
-        std::string temp = curr + c;
-        if (dict.count(temp)) {
-            curr = temp;
-        }
-        else {
-            encoded.push_back(dict[curr]);
-            dict[temp] = nextCode++; // Use current nextCode value, then increment
-            curr = std::string(1, c);
-        }
+    if (compressedSize <= 0) {
+        throw std::runtime_error("Cannot compress data.");
     }
 
-    if (!curr.empty()) {
-        encoded.push_back(dict[curr]);
-    }
-
-    return encoded;
+    compressed.resize(compressedSize);
+    return compressed;
 }
 
 void Log::closeLog() {
