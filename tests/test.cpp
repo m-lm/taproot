@@ -37,9 +37,9 @@ int main() {
     DB test_db("_TEST");
     Query test_query(test_db);
     for (size_t i = 0; i < TOTAL_WRITES; i++) {
-        //std::pair<std::string, std::string> pair = generateSample();
-        //std::string command = "put " + pair.first + " " + pair.second + "\n";
-        std::string command = "put " + std::to_string(i) + " " + std::to_string(i*2) + "\n";
+        std::pair<std::string, std::string> pair = generateSample();
+        std::string command = "put " + pair.first + " " + pair.second + "\n";
+        // std::string command = "put " + std::to_string(i) + " " + std::to_string(i*2) + "\n";
         test_query.parseCommand(command);
     }
     auto end = std::chrono::high_resolution_clock::now();

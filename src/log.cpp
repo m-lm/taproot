@@ -114,7 +114,7 @@ void Log::appendCommand(Command cmd, const std::string& key, const std::string& 
 void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state) {
     // Takes the current final state (equivalent to compacted human-readable snapshot) and serializes to binary for performance
     // The keyspace state is passed by reference from owner DB instance
-    // Binary format: [Keyspace size][Key1 size][Key1 data][Value1 size][Value1 data]...
+    // Binary format: [MAGIC][isCompressed bit][Keyspace size][Key1 size][Key1 data][Value1 size][Value1 data]...
     std::ostringstream datastream;
     size_t keyspaceSize = state.size();
     const char* MAGIC = "TDB";
@@ -141,28 +141,23 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
 
         if (serialSize > this->COMPRESSION_THRESHOLD) {
             // Serialized final state passes threshold, so attempt to compress
-            auto start = std::chrono::high_resolution_clock::now();
-
             std::vector<uint8_t> input(serializedDatastream.begin(), serializedDatastream.end());
             std::vector<uint8_t> compressedDatastream = this->compress(input);
             size_t compressedSize = compressedDatastream.size();
             size_t uncompressedSize = input.size();
+
             uint8_t flag = (compressedSize < uncompressedSize) ? 1 : 0; // 1 if compression works; write to beginning of file
             writer.write(reinterpret_cast<const char*>(&flag), 1);
+
             if (flag) {
                 // Compression was effective enough
                 writer.write(reinterpret_cast<const char*>(&uncompressedSize), sizeof(uncompressedSize)); // Original size for future decompression
                 writer.write(reinterpret_cast<const char*>(compressedDatastream.data()), static_cast<std::streamsize>(compressedSize));
-                std::cout << "Did compress" << std::endl;
             }
             else {
                 // Compression did not do anything
                 writer.write(reinterpret_cast<const char*>(input.data()), static_cast<std::streamsize>(uncompressedSize));
-                std::cout << "Did not compress" << std::endl;
             }
-            auto end = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-            std::cout << "Binary compressed in " << duration << std::endl;
         }
         else {
             // If not state not big enough to compress, just serialize and write to .db
@@ -277,7 +272,7 @@ std::vector<uint8_t> Log::compress(const std::vector<uint8_t>& input) {
 
     int maxCompressedSize = LZ4_compressBound(input.size());
     std::vector<uint8_t> compressed(maxCompressedSize);
-    int compressedSize = LZ4_compress_default(reinterpret_cast<const char*>(input.data()),
+    int compressedSize = LZ4_compress_default(reinterpret_cast<const char*>(input.data()), // Consider LZ4_compress_destSize here as well
         reinterpret_cast<char*>(compressed.data()),
         static_cast<int>(input.size()),
         maxCompressedSize);
