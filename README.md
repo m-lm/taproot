@@ -2,9 +2,20 @@
 
 Taproot is a simple in-memory key-value store written in C++ with minimal dependencies, supporting on-disk data persistence and fast in-memory reads/writes.
 
----
+-----
 
 Taproot was developed to be a lightweight Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones) more generally. In the process, I learned more about C++, system design, algorithms, and data structures. This project serves as a playground for concepts I find interesting, and suggestions are welcome.
+
+## Table of Contents
+
+- [Features](#features)
+- [Backlog](#backlog)
+- [Future](#future)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
 
 ## Features
 
@@ -36,21 +47,12 @@ This is not a comprehensive list of to-dos nor is it a full list of future plans
 - Search queries
 - AWS EC2 single-node deployment
 
-## Table of Contents
-- [Features](#features)
-- [Backlog](#backlog)
-- [Future](#future)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Documentation](#documentation)
-- [Acknowledgements](#acknowledgements)
-- [License](#license)
-
 ## Installation
 
 ## Usage
 
 ## Documentation
+
 - [Interfaces](docs/interfaces.md)
 - [Architecture](docs/architecture.md)
 - [Design Choices](docs/design-choices.md)
@@ -59,7 +61,7 @@ This is not a comprehensive list of to-dos nor is it a full list of future plans
 
 ## Acknowledgements
 
-This toy project is heavily inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) compression library.
+This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) compression library.
 
 ## License
 
