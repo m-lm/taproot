@@ -1,23 +1,66 @@
 # Taproot
 
-Taproot is a simple in-memory key-value store written in C++ with minimal dependencies. 
+Taproot is a simple in-memory key-value store written in C++ with minimal dependencies, supporting on-disk data persistence and fast in-memory reads/writes.
 
-### Walkthrough
-Taproot was developed to be a Redis-like clone for educational purposes with minimal dependencies. The impetus for this project was my burgeoning interest in storage engines. In the process, I learned more about C++ and system design.
+---
 
-The following is a brief walkthrough of how the system works and the reasoning behind certain design decisions.
+Taproot was developed to be a lightweight Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones) more generally. In the process, I learned more about C++, system design, algorithms, and data structures. This project serves as a playground for concepts I find interesting, and suggestions are welcome.
 
-#### Storage
-The bulk of the project was devoted towards the storage mechanisms. Taproot uses built-in the C++ hash tables (`unordered_map`) found in the standard library for O(1) read/write as well as Redis-style log storage consisting of three types of logs: the changelog, append-only files (AOFs), and binary snapshots. The changelog (`.log`) is the historical record of the database, equivalent to raw Redis AOFs in which all write commands are sequentially stored. Taproot's `.aof` files are the compacted versions of the changelog reflecting the state of the keyspace and are timestamped for bookkeeping purposes. They employed the primary method of persistence like in the case of Redis. Note that both of these types of storage files are plain text. The final type of log is the binary snapshot denoted by the `.db` file extension. It is the binary-serialized version of the most recent `.aof` file, the analog of the Redis `.rdb` file. Depending on the size of the binary, the serialized data is also compressed using the lightweight LZ4 compression algorithm. It serves as a compact backup for the store –– compressed only when it is large enough to avoid unnecessary overhead for smaller sizes.
+## Features
 
-The logs are periodically rotated to reduce the storage footprint. AOFs are limited to a set number of timestamped saves, past which the oldest one is replaced by a newer one. The changelog is also distilled at a predefined file size whereby Taproot retrieves the latest state from the latest AOF snapshot and overwrites the old changelog, which is compressed and archived for posterity. Archiving the changelog cannot simply rely on compaction for write-heavy workloads because the absolute volume remains similar, so compression must also be employed to prevent data bloat.
+- Simple Redis-style functionality
+- CLI and client-server interfaces (still in development)
+- Fast and concurrent in-memory operations
+- Durable, fast, and human-readable Append-Only Logs for persistent storage
+- Compaction, binary serialization, and LZ4 compression for snapshots
+- Log rotation and archiving
+- Minimal external dependencies
 
-During log compaction, Taproot previously read the full changelog to get the final state needed to write a compacted AOF. The problem with this is that it relies on the existence of a changelog and is less efficient than using the in-memory final state due to the fact that there will typically be considerably more appended commands in the changelog than there are items stored in-memory. Basic write-tests showed about a 30% faster compaction rate (~5.5sec decrease for 1 million dummy writes) when the in-memory state along with a string buffer was used instead. Another problem was data would be written to the compacted AOF even if nothing changed. A flag was added to detect if any change took place since the initial load to prevent this from happening, resulting in faster read-only usage. Altogether, these optimizations made the system perform slightly snappier.
+## Backlog
 
-Safety mechanisms were implemented in place for various anomalies, such as when the log files are missing or deleted. For instance, if the changelog is missing, Taproot will defer to the latest compacted `.aof` snapshot and "catch up" the changelog by appending the commands found in the compacted file to the beginning of the regenerated changelog. And in the case of missing snapshots, Taproot will proceed to the next latest compacted snapshot to replay the state. If no snapshots are found, it will look for the changelog. If the changelog is also missing at this point, all data is lost. In the near future, backups will be sourced via the binary `.db` snapshots.
+- Implement multi-word values
+- New commands (mset, mdel, stats, use)
+- Client-server interface via TCP sockets
+- Increased concurrency (real-time rotation & compaction, forked checkpointing, client write-locks)
+- Move from unordered_map to ordered_map or skip list data structure for sorted queries
+- Data import and export
+- More unit/case testing
 
-#### Dependencies
-One aim of this project was to keep it lightweight in terms of dependencies. Taproot utilizes the Boost and LZ4 libraries to offload some of the work that detracts from the didactic focus. At first, the LZW compression algorithm was implemented manually, and on the write test of 1 million key-value pairs it resulted in a file size decrease of up to 80% (23 MB decrease) when applied to the `.db` binary snapshot presumably because of the highly redundant nature of the data. However, it soon became apparent that relying on hand-implemented solutions would be too inflexible and suboptimal: on my MacBook Air M1, it took 12003ms. Though LZ4 does not boast the best compression ratio, it is extremely fast and aborts early if it deems compression ineffective. Since Taproot is a Redis-style store, it was permissible to outsource the compression details to a proper library, as Redis does not typically use compression on its logs.
+This is not a comprehensive list of to-dos nor is it a full list of future plans. See [Future](#future) for farther out ideas.
 
-#### Future
-This project is an educational undertaking. In the future, I plan to experiment with LSM-based storage (a la LevelDB/RocksDB) and distributed systems in the cloud. I also plan to implement a document layer on top of the key-value core engine to augment the system's capabilities as natural next step.
+## Future
+
+- Python driver
+- JSON document data modeling
+- MessagePack serialization
+- Search queries
+- AWS EC2 single-node deployment
+
+## Table of Contents
+- [Features](#features)
+- [Backlog](#backlog)
+- [Future](#future)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
+## Installation
+
+## Usage
+
+## Documentation
+- [Interfaces](docs/interfaces.md)
+- [Architecture](docs/architecture.md)
+- [Design Choices](docs/design-choices.md)
+- [Storage Engine](docs/storage.md)
+- [Performance](docs/performance.md)
+
+## Acknowledgements
+
+This toy project is heavily inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) compression library.
+
+## License
+
+Taproot is under the GPL-3.0 license. See [LICENSE](LICENSE) for more details.
