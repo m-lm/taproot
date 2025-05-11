@@ -15,7 +15,7 @@ class DB {
         Log logger;
         std::unique_ptr<Query> query;
         bool replaying;
-        bool hasBeenAltered;
+        size_t dirty;
 
     public:
         // Constructors and deconstructors

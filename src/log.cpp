@@ -18,21 +18,17 @@
 #include <fcntl.h>
 #include <unistd.h> 
 
-Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName), aofCount(0) {
+Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName) {
     // Logs (full changelogs) are owned by DB (store) objects
     this->dbFilepath = std::format("logs/{}.db", this->keyspaceName);
-    this->logFilepath = std::format("logs/{}.log", this->keyspaceName);
+    this->logFilepath = std::format("logs/{}.aof", this->keyspaceName);
 
     this->fileDescriptor = ::open(this->logFilepath.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
     if (this->fileDescriptor == -1) {
         throw std::runtime_error("Failed to open log file descripter.");
     }
 
-    bool logExists = std::filesystem::exists(this->logFilepath);
     this->logfile.open(this->logFilepath, std::ios::app);
-    if (!logExists) {
-        this->catchupLog();
-    }
     this->startFlushThread();
 }
 
@@ -64,28 +60,6 @@ void Log::startFlushThread() {
             ::fsync(this->fileDescriptor);
         }
     });
-}
-
-void Log::catchupLog() {
-    // Rebuild start of log if it is missing based off of latest compacted AOF snapshot
-    std::unordered_map<std::string, std::string> parseMap;
-    std::string line;
-    std::string snapshotFilename = this->getLatestSnapshot();
-    if (!std::filesystem::is_regular_file(snapshotFilename)) {
-        // Snapshot does not exist
-        return;
-    }
-    std::ifstream reader(snapshotFilename);
-    if (reader.is_open()) {
-        while (getline(reader, line)) {
-            std::vector<std::string> tokens = tokenize(line);
-            parseMap[tokens[1]] = tokens[2]; // Assume "put" commands since compacted
-        }
-        reader.close();
-    }
-    for (const std::pair<const std::string, std::string>& pair : parseMap) {
-        this->logfile << "put " + pair.first + " " + pair.second + "\n";
-    }
 }
 
 void Log::appendCommand(Command cmd, const std::string& key, const std::string& value) {
@@ -167,102 +141,6 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
     }
 }
 
-void Log::updateAofCount() {
-    // Update count of .aof files (compacted human-readable snapshots) for log management purposes
-    size_t count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator("logs")) {
-        std::string filename = entry.path().filename().string();
-        if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
-            count++;
-        }
-    }
-    this->aofCount = count;
-}
-
-std::string Log::getLatestSnapshot() {
-    // Searches the logs directory to find the latest .aof snapshot containing the keyspace name
-    std::string latestSnapshot;
-    for (const auto& entry : std::filesystem::directory_iterator("logs")) {
-        std::string filename = entry.path().filename().string();
-        if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
-            if (filename > latestSnapshot) {
-                latestSnapshot = filename;
-            }
-        }
-    }
-    return "logs/" + latestSnapshot;
-}
-
-std::string Log::getEarliestSnapshot() {
-    // Searches the logs directory to find the earliest .aof snapshot containing the keyspace name to overwrite/archive
-    // Note that sorting would be O(n log n) and linearly checking would simply be O(n), unless already sorted
-    std::string earliestSnapshot = "";
-    for (const auto& entry : std::filesystem::directory_iterator("logs")) {
-        std::string filename = entry.path().filename().string();
-        if (filename.starts_with(this->keyspaceName + "_") && filename.ends_with(".aof")) {
-            if (earliestSnapshot.empty() || filename < earliestSnapshot) {
-                earliestSnapshot = filename;
-            }
-        }
-    }
-    return "logs/" + earliestSnapshot;
-}
-
-void Log::rotateLogs() {
-    // Manage DB Append-Only File (.aof) logs by rotating, archiving, deleting, or overwriting old logs. Limit max .aof files to 5 per keyspace
-    this->updateAofCount();
-    if (this->aofCount > MAX_AOF_FILES) {
-        std::string earliestSnapshotFilename = this->getEarliestSnapshot();
-        if (!std::filesystem::remove(earliestSnapshotFilename)) {
-            std::perror("Cannot delete .aof file.");
-            exit(1);
-        }
-    }
-
-    // Rewrite whole log to latest compacted state when threshold is reached. Optionally archive old log
-    if (std::filesystem::is_regular_file(this->logFilepath)) {
-        size_t logFilesize = std::filesystem::file_size(this->logFilepath);
-        if (logFilesize > ROTATION_THRESHOLD) {
-            // TODO: Archive old .log file and compress using LZ4 on human-readable
-            std::string latestSnapshotFilename = this->getLatestSnapshot();
-            size_t latestSnapshotFilesize = std::filesystem::file_size(latestSnapshotFilename);
-            if (std::filesystem::is_regular_file(latestSnapshotFilename) && logFilesize > latestSnapshotFilesize) {
-                std::filesystem::copy(latestSnapshotFilename, this->logFilepath, std::filesystem::copy_options::overwrite_existing); // Duplicate and replace/fill, not rename
-            }
-        }
-    }
-}
-
-void Log::compactLog(const std::unordered_map<std::string, std::string>& state, const bool hasBeenAltered) {
-    // Compacts the Append-Only Log to reduce old or redundant queries. Used before compression
-    // Also assumes no invalid commands were permitted into the log
-    std::string latestSnapshotFilename = this->getLatestSnapshot();
-    if (!hasBeenAltered && std::filesystem::is_regular_file(latestSnapshotFilename)) {
-        // Skip writes if no changes have been made, unless no snapshots are saved, in which case generate one
-        return;
-    }
-    std::string snapshotFilename = std::format("logs/{}_{}.aof", this->keyspaceName, getTimestamp());
-    std::string buffer;
-    buffer.reserve(10000000);
-    if (this->logfile.is_open()) {
-        throw std::runtime_error("Cannot compact logfile that is still open.");
-    }
-
-    // Write to timestamped snapshot (replayability)
-    if (!state.empty()) {
-        std::ofstream writer(snapshotFilename);
-        if (writer.is_open()) {
-            for (const std::pair<const std::string, std::string>& pair : state) {
-                buffer += "put " + pair.first + " " + pair.second + "\n";
-            }
-            writer << buffer;
-            writer.close();
-        }
-    }
-
-    // Write to binary snapshot as well
-    this->writeBinarySnapshot(state);
-}
 
 std::vector<uint8_t> Log::compress(const std::vector<uint8_t>& input) {
     // Wrapper to compress the binary-serialized compacted snapshot further using LZ4 compression
@@ -284,6 +162,31 @@ std::vector<uint8_t> Log::compress(const std::vector<uint8_t>& input) {
     compressed.resize(compressedSize);
     return compressed;
 }
+
+void Log::compactLog(const std::unordered_map<std::string, std::string>& state, const size_t dirty) {
+    // Compacts the Append-Only Log to reduce old or redundant queries
+    if (dirty <= 0) {
+        // Skip writes if no changes have been made, unless no snapshots are saved, in which case generate one
+        return;
+    }
+    std::string tempAof = std::format("logs/{}.aof", this->keyspaceName);
+    std::string buffer;
+    buffer.reserve(10000000);
+
+    // Write to temporary timestamped .aof for future replacement
+    if (!state.empty()) {
+        std::ofstream writer(tempAof);
+        if (writer.is_open()) {
+            for (const std::pair<const std::string, std::string>& pair : state) {
+                buffer += "put " + pair.first + " " + pair.second + "\n";
+            }
+            writer << buffer;
+            writer.close();
+        }
+    }
+    std::filesystem::rename(tempAof, this->logFilepath);
+}
+
 
 void Log::closeLog() {
     // Close the logfile including file descriptor and threads

@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <chrono>
 
-DB::DB(const std::string& name) : name(name), logger(name), hasBeenAltered(false) {
+DB::DB(const std::string& name) : name(name), logger(name), dirty(0) {
     this->query = std::make_unique<Query>(*this);
     this->loadFromLog();
 }
@@ -27,7 +27,7 @@ void DB::put(const std::string& key, const std::string& value) {
     // Add or update key-value pair
     this->store[key] = value;
     if (!this->replaying) {
-        this->hasBeenAltered = true;
+        this->dirty++;
     }
 }
 
@@ -36,7 +36,7 @@ bool DB::del(const std::string& key) {
     int status = this->store.erase(key);
     if (status >= 1) {
         if (!this->replaying) {
-            this->hasBeenAltered = true;
+            this->dirty++;
         }
         return true;
     }
@@ -74,39 +74,19 @@ Log& DB::getLogger() {
 void DB::loadFromLog() {
     // Replay the commands from the compacted log to fill the store with data
     // Note: this loads from the snapshot, not the full changelog
-    std::string snapshotFilename = this->logger.getLatestSnapshot();
-    if (!std::filesystem::exists(snapshotFilename) || !std::filesystem::is_regular_file(snapshotFilename)) {
-        std::cout << "Note: Replay snapshot not found." << std::endl;
-        std::string logFilename = std::format("logs/{}.log", this->name);
-        if (!std::filesystem::exists(snapshotFilename)) {
-            std::cout << "Note: Changelog not found." << std::endl;
-            return;
+    std::string logFilename = std::format("logs/{}.aof", this->name);
+    std::ifstream loader(logFilename);
+    std::string line;
+    if (loader.is_open() && this->store.empty()) {
+        while(getline(loader, line)) {
+            this->replaying = true;
+            this->query->parseCommand(line);
+            this->replaying = false;
         }
-        std::ifstream loader(logFilename);
-        std::string line;
-        if (loader.is_open() && this->store.empty()) {
-            while(getline(loader, line)) {
-                this->replaying = true;
-                this->query->parseCommand(line);
-                this->replaying = false;
-            }
-            loader.close();
-        }
+        loader.close();
     }
     else {
-        std::ifstream loader(snapshotFilename);
-        std::string line;
-        if (loader.is_open() && this->store.empty()) {
-            while(getline(loader, line)) {
-                this->replaying = true;
-                this->query->parseCommand(line);
-                this->replaying = false;
-            }
-            loader.close();
-        }
-        else {
-            std::cout << "Note: Either log loader isn't open, or the store is nonempty." << std::endl;
-        }
+        std::cout << "Note: Log not loaded." << std::endl;
     }
 }
 
@@ -134,6 +114,6 @@ void DB::display(const std::vector<std::string>& keys) {
 void DB::shutdown() {
     // Shutdown log file access to allow for compaction. Typically, use on DB close
     this->logger.closeLog();
-    this->logger.compactLog(this->store, this->hasBeenAltered);
-    this->logger.rotateLogs();
+    this->logger.compactLog(this->store, this->dirty);
+    this->logger.writeBinarySnapshot(this->store);
 }

@@ -4,15 +4,14 @@ Taproot is a simple in-memory key-value store written in C++ with minimal depend
 
 -----
 
-Taproot was developed to be a lightweight Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones) more generally. In the process, I learned more about C++, system design, algorithms, and data structures. This project serves as a playground for concepts I find interesting, and suggestions are welcome.
+Taproot was developed to be a lightweight Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones). In the process, I learned more about C++, system design, algorithms, and data structures. This project serves as a playground for concepts I find interesting and any suggestions are welcome.
 
 ## Table of Contents
 
 - [Features](#features)
 - [Backlog](#backlog)
 - [Future](#future)
-- [Installation](#installation)
-- [Usage](#usage)
+- [Setup](#setup)
 - [Documentation](#documentation)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
@@ -35,9 +34,8 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - Increased concurrency (real-time rotation & compaction, forked checkpointing, client write-locks)
 - Move from unordered_map to ordered_map or skip list data structure for sorted queries
 - Data import and export
-- More unit/case testing
 
-This is not a comprehensive list of to-dos nor is it a full list of future plans. See [Future](#future) for farther out ideas.
+This is not a comprehensive list of to-dos nor is it a full list of future plans; see [Future](#future).
 
 ## Future
 
@@ -45,11 +43,8 @@ This is not a comprehensive list of to-dos nor is it a full list of future plans
 - JSON document data modeling
 - MessagePack serialization
 - Search queries
-- AWS EC2 single-node deployment
 
-## Installation
-
-## Usage
+## Setup
 
 ## Documentation
 
