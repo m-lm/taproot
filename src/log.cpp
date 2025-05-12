@@ -169,7 +169,7 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
         // Skip writes if no changes have been made, unless no snapshots are saved, in which case generate one
         return;
     }
-    std::string tempAof = std::format("logs/{}.aof", this->keyspaceName);
+    std::string tempAof = std::format("logs/{}_temp.aof", this->keyspaceName);
     std::string buffer;
     buffer.reserve(10000000);
 

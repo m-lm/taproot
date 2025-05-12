@@ -14,6 +14,7 @@ add_executable(taproot
   src/log.cpp
   src/query.cpp
   src/utils.cpp
+  src/cli.cpp
   third-party/lz4/lz4.c
 )
 
