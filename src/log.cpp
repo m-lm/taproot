@@ -25,11 +25,11 @@ Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName) {
 
     this->fileDescriptor = ::open(this->logFilepath.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
     if (this->fileDescriptor == -1) {
-        throw std::runtime_error("Failed to open log file descripter.");
+        throw std::runtime_error("Failed to open log file descriptor.");
     }
 
     this->logfile.open(this->logFilepath, std::ios::app);
-    this->startFlushThread();
+    this->startAppendFlusher();
 }
 
 Log::~Log() {
@@ -38,12 +38,22 @@ Log::~Log() {
     }
 }
 
-void Log::startFlushThread() {
+std::string Log::getDbFilepath() {
+    // Get the .db filepath for this keyspace
+    return this->dbFilepath;
+}
+
+std::string Log::getLogFilepath() {
+    // Get the .aof filepath for this keyspace
+    return this->logFilepath;
+}
+
+void Log::startAppendFlusher() {
     // Start background thread for the append buffer when writing commands to changelog for everysec
     this->flushThread = std::thread([this]() {
-        std::unique_lock<std::mutex> condivarLock(this->condivarMutex);
+        std::unique_lock<std::mutex> conditionVariableLock(this->conditionVariableMutex);
         while (!this->stopFlushThread) {
-            this->condivar.wait_for(condivarLock, std::chrono::seconds(1));
+            this->conditionVariable.wait_for(conditionVariableLock, std::chrono::seconds(1));
 
             std::string localBuffer;
             {
@@ -187,11 +197,10 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
     std::filesystem::rename(tempAof, this->logFilepath);
 }
 
-
 void Log::closeLog() {
     // Close the logfile including file descriptor and threads
     this->stopFlushThread = true;
-    this->condivar.notify_one(); // If thread in between 1s interval, wake to close immediately
+    this->conditionVariable.notify_one(); // If thread in between 1s interval, wake to close immediately
     if (flushThread.joinable()) {
         flushThread.join();
     }

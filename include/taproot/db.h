@@ -28,13 +28,13 @@ class DB {
         bool del(const std::string& key);
         std::optional<std::string> get(const std::string& key) const;
         std::vector<std::optional<std::string>> mget(const std::vector<std::string>& keys) const;
-
-        // Group data getters
         /*
         std::vector<const std::string&> getKeys() const;
         std::vector<const std::string&> getValues() const;
         std::vector<const std::pair<std::string, std::string>> getItems() const;
         */
+
+        // Log functionality
         bool isReplaying();
         Log& getLogger();
         void loadFromLog();

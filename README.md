@@ -20,9 +20,8 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 
 - Simple Redis-style functionality
 - CLI and client-server interfaces (still in development)
-- Fast and concurrent in-memory operations
-- Durable, fast, and human-readable Append-Only Logs for persistent storage
-- Compaction, binary serialization, and LZ4 compression for snapshots
+- Durable, fast, and human-readable append-only logs for persistent storage
+- Compaction, serialization, and LZ4 compression for binary snapshots
 - Log rotation and archiving
 - Minimal external dependencies
 
@@ -31,20 +30,20 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - Implement multi-word values
 - New commands (mset, mdel, stats, use)
 - Client-server interface via TCP sockets
-- Increased concurrency (real-time rotation & compaction, forked checkpointing, client write-locks)
-- Move from unordered_map to ordered_map or skip list data structure for sorted queries
+- Concurrent writes and log compaction
+- Implement own hash table
 - Data import and export
 
 This is not a comprehensive list of to-dos nor is it a full list of future plans; see [Future](#future).
 
 ## Future
 
-- Python driver
-- JSON document data modeling
-- MessagePack serialization
-- Search queries
+- Implement skip lists for sorted queries
+- Document data modeling w/ search
 
 ## Setup
+
+Currently, this project can only be run via the command-line interface; simply run `./run.sh` to interact with the main program or `./run.sh --test` to run basic testing defined in `tests/test.cpp`.
 
 ## Documentation
 

@@ -6,17 +6,16 @@
 
 void cli() {
     const std::string welcome = R"(
-            taprootDB 
+            taprootdb
     ----------------------------------
-        Key-value. Document.
     ----------------------------------
    
     use     → switch keyspace
     put     → store value by key
     del     → delete key-value pair
     get     → retrieve value by key
-    mget    → retrieve multiple values by keys
-    show    → display all key-values
+    mget    → retrieve multiple values by key
+    show    → display all key-value pairs
     help    → display commands
     quit    → close the program
     

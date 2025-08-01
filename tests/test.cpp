@@ -11,9 +11,7 @@
 #include <random>
 #include <chrono>
 
-const size_t TOTAL_WRITES = 1000000;
-
-std::pair<std::string, std::string> generateSample(size_t length = 96, bool random = true) {
+std::pair<std::string, std::string> generateSample(const size_t length = 96, const bool random = true) {
     // Generate dummy data for key-value pairs
     std::string key(16, '\0');
     std::string val(length, '\0');
@@ -33,6 +31,8 @@ std::pair<std::string, std::string> generateSample(size_t length = 96, bool rand
 }
 
 int main() {
+    const size_t TOTAL_WRITES = 1000000;
+
     auto start = std::chrono::high_resolution_clock::now();
     DB test_db("_TEST");
     Query test_query(test_db);
@@ -45,5 +45,6 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "Write test @ " << duration << std::endl;
+
     return 0;
 }
