@@ -22,7 +22,6 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - CLI and client-server interfaces (still in development)
 - Durable, fast, and human-readable append-only logs for persistent storage
 - Compaction, serialization, and LZ4 compression for binary snapshots
-- Log rotation and archiving
 - Minimal external dependencies
 
 ## Backlog
@@ -30,7 +29,7 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - Implement multi-word values
 - New commands (mset, mdel, stats, use)
 - Client-server interface via TCP sockets
-- Concurrent writes and log compaction
+- Concurrent writes and log compaction (currently, compaction only occurs on shutdown)
 - Implement own hash table
 - Data import and export
 
@@ -55,7 +54,7 @@ Currently, this project can only be run via the command-line interface; simply r
 
 ## Acknowledgements
 
-This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) compression library.
+This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) compression and [Asio](https://github.com/chriskohlhoff/asio) networking libraries.
 
 ## License
 

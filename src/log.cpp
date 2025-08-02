@@ -183,7 +183,7 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
     std::string buffer;
     buffer.reserve(10000000);
 
-    // Write to temporary timestamped .aof for future replacement
+    // Write to temporary .aof for replacement
     if (!state.empty()) {
         std::ofstream writer(tempAof);
         if (writer.is_open()) {
