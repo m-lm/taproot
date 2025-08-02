@@ -21,8 +21,10 @@ add_executable(taproot
 target_include_directories(taproot PRIVATE
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/third-party/lz4
+  ${CMAKE_SOURCE_DIR}/third-party/asio
 )
 
+target_compile_definitions(taproot PRIVATE asio_standalone)
 target_link_libraries(taproot PRIVATE lz4)
 
 add_executable(test
@@ -37,4 +39,8 @@ add_executable(test
 target_include_directories(test PRIVATE
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/third-party/lz4
+  ${CMAKE_SOURCE_DIR}/third-party/asio
 )
+
+target_compile_definitions(test PRIVATE asio_standalone)
+target_link_libraries(test PRIVATE lz4)
