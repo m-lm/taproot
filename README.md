@@ -46,7 +46,7 @@ Currently, this project can only be run via the command-line interface; simply r
 ## Documentation
 
 - [Interfaces](docs/interfaces.md)
-- [Design Choices](docs/design-choices.md)
+- [Design](docs/design.md)
 - [Storage Engine](docs/storage.md)
 - [Performance](docs/performance.md)
 
