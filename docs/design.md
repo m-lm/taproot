@@ -1,0 +1,7 @@
+# Design
+
+### Dependencies
+
+One aim of this project was to keep it lightweight in terms of dependencies. Taproot utilizes the Boost and LZ4 libraries to offload some of the work that detracts from the didactic focus. At first, the LZW compression algorithm was implemented manually, and on the write test of 1 million key-value pairs it resulted in a file size decrease of up to 80% (23 MB decrease) when applied to the `.db` binary snapshot presumably because of the highly redundant nature of the data. However, it soon became apparent that relying on hand-implemented solutions would be too inflexible and suboptimal: on my MacBook Air M1, it took 12003ms. Though LZ4 does not boast the best compression ratio, it is extremely fast. Since Taproot is a Redis-style store, it was permissible to outsource the compression details to a proper library, as Redis does not typically use compression on its logs.
+
+All third-party libraries are directly integrated from their respective GitHub repositories; no special package managers required. I deemed this simpler than grappling with the likes of vcpkg since I only plan to use a couple of external libraries. For the long term, it may be wise to switch to a proper package manager.

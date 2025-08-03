@@ -1,6 +1,6 @@
 # Taproot
 
-Taproot is a simple in-memory key-value store written in C++ with minimal dependencies, supporting on-disk data persistence and fast in-memory reads/writes.
+Taproot is a simple in-memory key-value store written in C++ with minimal dependencies, supporting data persistence and fast in-memory reads/writes.
 
 -----
 
@@ -32,13 +32,12 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - Concurrent writes and log compaction (currently, compaction only occurs on shutdown)
 - Implement own hash table
 - Data import and export
-
-This is not a comprehensive list of to-dos nor is it a full list of future plans; see [Future](#future).
+- Config options
 
 ## Future
 
 - Implement skip lists for sorted queries
-- Document data modeling w/ search
+- JSON document data modeling w/ search
 
 ## Setup
 
@@ -47,14 +46,13 @@ Currently, this project can only be run via the command-line interface; simply r
 ## Documentation
 
 - [Interfaces](docs/interfaces.md)
-- [Architecture](docs/architecture.md)
 - [Design Choices](docs/design-choices.md)
 - [Storage Engine](docs/storage.md)
 - [Performance](docs/performance.md)
 
 ## Acknowledgements
 
-This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) compression and [Asio](https://github.com/chriskohlhoff/asio) networking libraries.
+This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) for compression and [Asio](https://github.com/chriskohlhoff/asio) for networking.
 
 ## License
 
