@@ -10,7 +10,6 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 
 - [Features](#features)
 - [Backlog](#backlog)
-- [Future](#future)
 - [Setup](#setup)
 - [Documentation](#documentation)
 - [Acknowledgements](#acknowledgements)
@@ -34,25 +33,17 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - Data import and export
 - Config options
 
-## Future
-
-- Implement skip lists for sorted queries
-- JSON document data modeling w/ search
-
 ## Setup
 
-Currently, this project can only be run via the command-line interface; simply run `./run.sh` to interact with the main program or `./run.sh --test` to run basic testing defined in `tests/test.cpp`.
+Currently, this project can only be run via the command-line interface; in root, simply run `./run.sh` to interact with the main program or `./run.sh --test` to run basic testing defined in `tests/test.cpp`.
 
 ## Documentation
 
-- [Interfaces](docs/interfaces.md)
-- [Design](docs/design.md)
-- [Storage Engine](docs/storage.md)
-- [Performance](docs/performance.md)
+See [documentation](docs.md).
 
 ## Acknowledgements
 
-This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of the [LZ4](https://github.com/lz4/lz4) for compression and [Asio](https://github.com/chriskohlhoff/asio) for networking.
+This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of [LZ4](https://github.com/lz4/lz4) for compression and [Asio](https://github.com/chriskohlhoff/asio) for networking.
 
 ## License
 
