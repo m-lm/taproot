@@ -4,7 +4,7 @@ Taproot is a simple in-memory key-value store written in C++ with minimal depend
 
 -----
 
-Taproot was developed to be a lightweight Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones). In the process, I learned more about C++, system design, algorithms, and data structures. This project serves as a playground for concepts I find interesting and any suggestions are welcome.
+Taproot was developed to be a lightweight Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones). In the process, I learned more about C++, system design, algorithms, and data structures. This project serves as a playground for concepts I find interesting.
 
 ## Table of Contents
 
@@ -12,7 +12,7 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - [Backlog](#backlog)
 - [Setup](#setup)
 - [Documentation](#documentation)
-- [Acknowledgements](#acknowledgements)
+- [Acknowledgments](#acknowledgments)
 - [License](#license)
 
 ## Features
@@ -41,7 +41,7 @@ Currently, this project can only be run via the command-line interface; in root,
 
 See [documentation](docs.md).
 
-## Acknowledgements
+## Acknowledgments
 
 This toy project is inspired by [Redis](https://github.com/redis/redis), and makes use of [LZ4](https://github.com/lz4/lz4) for compression and [Asio](https://github.com/chriskohlhoff/asio) for networking.
 

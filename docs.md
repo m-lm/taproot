@@ -55,9 +55,9 @@ _During log compaction, Taproot previously read the full changelog to get the fi
 
 Naive rebuilding from AOF: 4ms, 18350ms, 3ms  
 Pass state: 4ms, 13348ms, 2ms  
-Append buffer + No string formatting: 2ms, 12815, n/a  
+Append buffer + No string formatting: 2ms, 12815ms, n/a  
 
-**Result from naive rebuild to buffer + pass state: 30% time decrease.**
+**Result from naive rebuild to buffer + pass state: ~30% time decrease.**
 
 ---
 
@@ -78,7 +78,7 @@ Everysec + No string formatting: 4447ms
 Everysec + String formatting: 5837ms (good durability tradeoff)  
 Always + String formatting 7539ms (max durability)  
 
-**Result from always flushing to concurrent everysec flushing: 22% time decrease.**
+**Result from always flushing to concurrent everysec flushing: ~22% time decrease.**
 
 _After adding everysec background thread, shutdown would take around 500ms on average due to the 1s interval wait. Adding an std::conditional_variable to immediately notify the thread on closeLog() prevented the extra unnecessary wait and dropped the time down from a sporadic range of [5ms, 1s] (often 500-600ms) to a consistent 3ms for normal workflows and 0ms for read-only workflows (due to false dirty flag)._
 
