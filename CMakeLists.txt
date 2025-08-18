@@ -6,16 +6,21 @@ project(TaprootDB VERSION 1.0
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(lz4 STATIC third-party/lz4/lz4.c)
-
-add_executable(taproot
-  src/main.cpp
+set(SHARED_SRC
   src/db.cpp
   src/log.cpp
   src/query.cpp
   src/utils.cpp
-  src/cli.cpp
   third-party/lz4/lz4.c
+)
+
+add_library(lz4 STATIC third-party/lz4/lz4.c)
+
+# Taproot server
+
+add_executable(taproot
+  src/main.cpp
+  ${SHARED_SRC}
 )
 
 target_include_directories(taproot PRIVATE
@@ -27,13 +32,11 @@ target_include_directories(taproot PRIVATE
 target_compile_definitions(taproot PRIVATE asio_standalone)
 target_link_libraries(taproot PRIVATE lz4)
 
+# Conducting tests
+
 add_executable(test
   tests/test.cpp
-  src/db.cpp
-  src/log.cpp
-  src/query.cpp
-  src/utils.cpp
-  third-party/lz4/lz4.c
+  ${SHARED_SRC}
 )
 
 target_include_directories(test PRIVATE
@@ -44,3 +47,19 @@ target_include_directories(test PRIVATE
 
 target_compile_definitions(test PRIVATE asio_standalone)
 target_link_libraries(test PRIVATE lz4)
+
+# Command-line interface
+
+add_executable(cli
+  src/cli.cpp
+  ${SHARED_SRC}
+)
+
+target_include_directories(cli PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/third-party/lz4
+  ${CMAKE_SOURCE_DIR}/third-party/asio
+)
+
+target_compile_definitions(cli PRIVATE asio_standalone)
+target_link_libraries(cli PRIVATE lz4)

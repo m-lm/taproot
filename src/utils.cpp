@@ -37,3 +37,4 @@ std::string getTimestamp() {
     stream << std::put_time(&time, "%y%m%dT%H%M%S");
     return stream.str();
 }
+

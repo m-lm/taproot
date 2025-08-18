@@ -2,6 +2,7 @@
 .vscode/
 todo.txt
 logs/
+config.cfg
 
 # Prerequisites
 *.d

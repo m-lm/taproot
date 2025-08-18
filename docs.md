@@ -7,7 +7,7 @@
 
 ## Design
 
-Taproot is designed to be simple and easy to understand. The motivation for this project was to learn more about storage systems; key-value stores are one of the fundamental database types – many systems are built on top of them. I wanted mine to operate similarly to [Redis](https://redis.io/), which is why I chose an append-only log-based file storage as the persistence medium along with network communication as an interface option. Since this project is meant to be educational, I kept dependency usage to a minimum.
+Taproot is a key-value store written in C++20 designed to be simple and easy to understand. The motivation for this project was to learn more about storage systems; key-value stores are one of the fundamental database types – many systems are built on top of them. I wanted mine to operate similarly to [Redis](https://redis.io/), which is why I chose an append-only log-based file storage as the persistence medium along with network communication as an interface option. Since this project is meant to be educational, I kept dependency usage to a minimum.
 
 #### Interfaces
 
