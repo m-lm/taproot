@@ -5,28 +5,8 @@
 #include <cctype>
 #include <asio.hpp>
 
-int main(int argc, char** argv) {
-    std::string host = "127.0.0.1";
-    unsigned port = 6709;
-
-    if (argc > 1) {
-        host = argv[1];
-    }
-    if (argc > 2) {
-        port = std::stoi(argv[2]);
-    }
-    asio::error_code err;
-    asio::io_context context;
-    asio::ip::tcp::endpoint endpoint(asio::ip::make_address(host, err), port);
-    asio::ip::tcp::socket socket(context);
-    socket.connect(endpoint, err);
-
-    if (!err) {
-        std::cout << std::format("Successfully connected to address '{}'", host) << std::endl;
-    }
-    else {
-        std::cout << std::format("Failed to connect to address '{}': {}", host, err.message()) << std::endl;
-    }
+void cli() {
+    // Command-line display for interacting with Taproot
 
     const std::string welcome = R"(
             taprootdb
@@ -71,5 +51,38 @@ int main(int argc, char** argv) {
         }
     }
     std::cout << "\nGoodbye\n" << std::endl;
+
+}
+
+int main(int argc, char** argv) {
+    // Main entrypoint for command-line client
+    const std::string configFilename = "config.cfg";
+    Config cfg = parseConfig(configFilename);
+
+    // Overwrite default config values with args passed in from command-line
+    if (argc > 1) {
+        validateHost(cfg, argv[1]);
+    }
+    if (argc > 2) {
+        validatePort(cfg, argv[2]);
+    }
+
+    // Set up networking
+    asio::error_code err;
+    asio::io_context context;
+    asio::ip::tcp::endpoint endpoint(asio::ip::make_address(cfg.host, err), cfg.port);
+    asio::ip::tcp::socket socket(context);
+    socket.connect(endpoint, err);
+
+    if (!err) {
+        std::cout << std::format("Successfully connected to address '{}:{}'", cfg.host, cfg.port) << std::endl;
+    }
+    else {
+        std::cout << std::format("Failed to connect to address '{}:{}': {}", cfg.host, cfg.port, err.message()) << std::endl;
+        return 1;
+    }
+
+    cli();
+
     return 0;
 }

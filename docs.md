@@ -19,6 +19,10 @@ Taproot utilizes the Asio and LZ4 libraries to offload the work that detracts fr
 
 All third-party libraries are directly integrated from their respective GitHub repositories; no special package managers are required. The benefit to this is simplicity, which I deemed more valuable for my purposes than the long-term maintainability I would gain from setting up a proper package manager. Since I plan to only use a few external libraries, importing the header files is simpler than grappling with the likes of vcpkg or other package managers. 
 
+#### Practices
+
+For this project, I prioritized using object-oriented programming (OOP) principles as well as modularity (i.e., Don't Repeat Yourself) to organize my code. The major parts of the system were delegated to their own respective files to increase maintainability and readability, and I created a separate "utils" file for miscellaneous functions that would be commonly used by other files. At the beginning of the development process, I decided on using camel case (as opposed to something like snake case) for the actual coding so as to keep the styling consistent.
+
 ## Storage 
 
 Taproot currently uses the built-in C++ hash tables (`unordered_map`) provided in the standard library for O(1) reads/writes of strings as well as Redis-style log storage consisting of `.aof` Append-Only Files and `.db` binary snapshots. 

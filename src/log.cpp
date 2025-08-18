@@ -181,7 +181,7 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
     }
     std::string tempAof = std::format("logs/{}_temp.aof", this->keyspaceName);
     std::string buffer;
-    buffer.reserve(10000000);
+    buffer.reserve(16777216);
 
     // Write to temporary .aof for replacement
     if (!state.empty()) {

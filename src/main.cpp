@@ -1,21 +1,26 @@
 #include "taproot/cli.h"
+#include "taproot/utils.h"
 #include <iostream>
 #include <asio.hpp>
 
 int main() {
-    const unsigned portNumber = 6709;
-    const std::string address = "93.184.216.34";
-    asio::error_code err;
+    // Configuration
+    const std::string configFilename = "config.cfg";
+    Config cfg = parseConfig(configFilename);
 
     // Networking interface
+    asio::error_code err;
     asio::io_context context;
 
     // Set up address to be able to connect (IPv4)
-    //asio::ip::tcp::endpoint endpoint(asio::ip::make_address(address, err), portNumber);
-    asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), portNumber);
+    asio::ip::tcp::endpoint endpoint(asio::ip::make_address(cfg.host, err), cfg.port);
 
     // Set up server listener for client 
-    asio::ip::tcp::acceptor acceptor(context, endpoint);
+    asio::ip::tcp::acceptor acceptor(context);
+    acceptor.open(asio::ip::tcp::v4());
+    acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
+    acceptor.bind(endpoint);
+    acceptor.listen();
     std::cout << "Listening..." << std::endl;
 
     // Set up communication line
