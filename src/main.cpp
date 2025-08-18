@@ -17,7 +17,7 @@ int main() {
 
     // Set up server listener for client 
     asio::ip::tcp::acceptor acceptor(context);
-    acceptor.open(asio::ip::tcp::v4());
+    acceptor.open(endpoint.protocol());
     acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
     acceptor.bind(endpoint);
     acceptor.listen();
@@ -26,7 +26,13 @@ int main() {
     // Set up communication line
     asio::ip::tcp::socket socket(context);
     acceptor.accept(socket);
-    std::cout << "Client connected..." << std::endl;
+
+    if (!err) {
+        std::cout << std::format("Client successfully connected...", cfg.host, cfg.port) << std::endl;
+    }
+    else {
+        std::cout << std::format("Client failed to connect: {}...", err.message()) << std::endl;
+    }
 
     return 0;
 }

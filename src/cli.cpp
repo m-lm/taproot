@@ -7,7 +7,6 @@
 
 void cli() {
     // Command-line display for interacting with Taproot
-
     const std::string welcome = R"(
             taprootdb
     ----------------------------------
@@ -72,7 +71,17 @@ int main(int argc, char** argv) {
     asio::io_context context;
     asio::ip::tcp::endpoint endpoint(asio::ip::make_address(cfg.host, err), cfg.port);
     asio::ip::tcp::socket socket(context);
-    socket.connect(endpoint, err);
+
+    // Client connection retry loop
+    const int maxRetries = 5;
+    for (int i = 0; i < maxRetries; i++) {
+        socket.connect(endpoint, err);
+        if (!err) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::cout << "Retrying..." << std::endl;
+    }
 
     if (!err) {
         std::cout << std::format("Successfully connected to address '{}:{}'", cfg.host, cfg.port) << std::endl;
@@ -82,6 +91,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Run command-line interface
     cli();
 
     return 0;
