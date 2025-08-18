@@ -11,7 +11,7 @@ Taproot is a key-value store written in C++20 designed to be simple and easy to 
 
 #### Interfaces
 
-Taproot currently supports command-line interface and will soon be able to communicate via sockets.
+Taproot currently supports command-line interface and will soon be able to communicate via sockets using the default address and port as "localhost" and "6379", respectively. The port number 6379 mimics that of Redis.
 
 #### Dependencies
 

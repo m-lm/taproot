@@ -5,7 +5,7 @@
 struct Config {
     // Default values for configuration options
     std::string host = "127.0.0.1";
-    unsigned short port = 6709;
+    unsigned short port = 6379;
 };
 
 bool isAllSpace(const std::string& input);
