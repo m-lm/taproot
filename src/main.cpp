@@ -7,6 +7,7 @@
 int main() {
     // Configuration
     const std::string configFilename = "config.cfg";
+    spawnConfig(configFilename);
     Config cfg = parseConfig(configFilename);
 
     // Networking interface

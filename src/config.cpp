@@ -6,9 +6,10 @@
 #include <sstream>
 #include <chrono>
 #include <fstream>
+#include <filesystem>
 
 Config parseConfig(const std::string& filename) {
-    // Read and parse config file to get system data like addresses, ports, etc.
+    // Read and parse config file to get system data like addresses, ports, etc
     std::ifstream file(filename);
     Config cfg;
     if (!file.is_open()) {
@@ -50,7 +51,7 @@ Config parseConfig(const std::string& filename) {
 }
 
 bool validateHost(Config& cfg, std::string host) {
-    // Check to see if host setting is valid from the config map; if it is, set it and return true. Otherwise, return false.
+    // Check to see if host setting is valid from the config map; if it is, set it and return true. Otherwise, return false
     if (!host.empty() && !isAllSpace(host)) {
         asio::error_code err;
         asio::ip::make_address(host, err);
@@ -70,7 +71,7 @@ bool validateHost(Config& cfg, std::string host) {
 }
 
 bool validatePort(Config& cfg, std::string port) {
-    // Check to see if port setting is valid from the config map; if it is, set it and return true. Otherwise, return false.
+    // Check to see if port setting is valid from the config map; if it is, set it and return true. Otherwise, return false
     try {
         int portNumber = std::stoi(port);
         if (portNumber < 0 || portNumber > 65535) {
@@ -86,4 +87,14 @@ bool validatePort(Config& cfg, std::string port) {
         return false;
     }
     return true;
+}
+
+void spawnConfig(const std::string& filename) {
+    // Create a default config file if one does not yet exist
+    if (!std::filesystem::exists(filename)) {
+        std::ofstream file(filename);
+        file << "host=" << Defaults::HOST_DEFAULT << "\n";
+        file << "port=" << Defaults::PORT_DEFAULT << "\n";
+        file.close();
+    }
 }
