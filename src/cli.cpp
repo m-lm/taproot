@@ -1,6 +1,7 @@
 #include "taproot/db.h"
 #include "taproot/query.h"
 #include "taproot/utils.h"
+#include "taproot/config.h"
 #include <iostream>
 #include <cctype>
 #include <asio.hpp>

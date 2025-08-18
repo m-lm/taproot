@@ -11,6 +11,7 @@ set(SHARED_SRC
   src/log.cpp
   src/query.cpp
   src/utils.cpp
+  src/config.cpp
   third-party/lz4/lz4.c
 )
 

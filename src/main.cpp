@@ -1,5 +1,6 @@
 #include "taproot/cli.h"
 #include "taproot/utils.h"
+#include "taproot/config.h"
 #include <iostream>
 #include <asio.hpp>
 

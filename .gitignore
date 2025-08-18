@@ -3,6 +3,7 @@
 todo.txt
 logs/
 config.cfg
+*.log
 
 # Prerequisites
 *.d
