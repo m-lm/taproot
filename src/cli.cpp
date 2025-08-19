@@ -95,5 +95,7 @@ int main(int argc, char** argv) {
     // Run command-line interface
     cli();
 
+    socket.close();
+
     return 0;
 }

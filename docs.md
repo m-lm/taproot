@@ -7,11 +7,13 @@
 
 ## Design
 
-Taproot is a key-value store written in C++20 designed to be simple and easy to understand. The motivation for this project was to learn more about storage systems; key-value stores are one of the fundamental database types – many systems are built on top of them. I wanted mine to operate similarly to [Redis](https://redis.io/), which is why I chose an append-only log-based file storage as the persistence medium along with network communication as an interface option. Since this project is meant to be educational, I kept dependency usage to a minimum.
+Taproot is a key-value store written in C++20 designed to be simple and easy to understand. The motivation for this project was to learn more about storage systems; key-value stores are one of the fundamental database types – many systems are built on top of them. I wanted mine to operate similarly to [Redis](https://redis.io/), which is why I chose an append-only log-based file storage as the persistence medium along with network communication via TCP sockets as the primary interface. Since this project is meant to be educational, I kept dependency usage to a minimum.
 
 #### Interfaces
 
-Taproot currently supports command-line interface and will soon be able to communicate via sockets using the default address and port as "localhost" and "6379", respectively. The port number 6379 mimics that of Redis.
+Taproot currently supports command-line interface (CLI) and will soon be able to communicate via sockets using the default address and port as "localhost" and "6379", respectively. The default port number 6379 mimics that of Redis.
+
+The main program of Taproot is a server that listens for client connections for a given address and port defined in `config.cfg`. The client can access the key-value server via the CLI executable or through the TCP-networked API.
 
 #### Dependencies
 
@@ -97,7 +99,8 @@ LZ4 compression: 2542ms (118MB down to 118MB, same because of random data)
 
 ## Future
 
-I find database management and information retrieval systems very interesting and engaging. I am always seeking to learn more. At its core, Taproot is intended to be a Redis-style key-value store and serves as my first foray into these areas. But it also provides a developmental test bed for future ideas that are more ambitious but potentially worth implementing, such as:
+I find database management and information retrieval systems very engaging. I am always seeking to learn more. At its core, Taproot is intended to be a Redis-style key-value store as well as my first foray into data management systems. But it also serves as a testbed for concepts I find interesting, like:
 
 - Skip lists for sorted queries
-- JSON document data modeling w/ search
+- Replication
+- JSON document support
