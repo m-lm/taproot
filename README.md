@@ -1,16 +1,17 @@
 # Taproot
 
-Taproot is a simple in-memory key-value store written in C++ with minimal dependencies, supporting data persistence and fast in-memory reads/writes.
+Taproot is a key-value store written in modern C++ with minimal dependencies, supporting data persistence through append-only logs and LZ4-compressed binary snapshots with compaction for storage efficiency. It supports networking via TCP sockets by leveraging Asio, and emphasizes simplicity in setup, configuration, and workflow – all while being self-contained and easy to use.
 
 -----
 
-Taproot was developed to be a lightweight Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones). In the process, I learned more about C++, system design, algorithms, and data structures. This project serves as a playground for concepts I find interesting.
+Taproot was developed to be a simple Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones). In the process, I learned more about C++, system design, algorithms, and data structures.
 
 ## Table of Contents
 
 - [Features](#features)
 - [Backlog](#backlog)
 - [Setup](#setup)
+- [Quickstart](#quickstart)
 - [Documentation](#documentation)
 - [Acknowledgments](#acknowledgments)
 - [License](#license)
@@ -32,6 +33,7 @@ Taproot was developed to be a lightweight Redis-like clone for educational purpo
 - Implement own hash table
 - Data import and export
 - Config options
+- Full binary snapshot backups
 
 ## Setup
 
@@ -41,9 +43,47 @@ Taproot uses a basic configuration file named `config.cfg` that lives in the roo
 
 You can go in and edit the config file as needed, but you can also overwrite the settings at runtime by passing in arguments from the command-line. For example, running `./run.sh --cli 127.0.0.1 6379` will set the host address and port number as "127.0.0.1" and "6379" respectively if it is not set already. Finally, the exact name of the config file can be changed by going into `src/main.cpp` and changing `configFilename`, which is currently hard-coded.
 
+## Quickstart
+
+Once the server is running and your client is connected to it, you can start entering commands.
+
+```console
+./run.sh --cli
+
+# Some output may be truncated for brevity
+
+tap> put claude shannon
+tap> put alan turing
+tap> put alonzo church
+tap> show
+
+alonzo: church
+alan: turing
+claude: shannon
+
+tap> get claude
+shannon
+
+tap> mget alonzo alan
+
+alonzo: church
+alan: turing
+
+tap> del alonzo
+tap> show
+
+alan: turing
+claude: shannon
+
+tap> quit
+
+Goodbye
+
+```
+
 ## Documentation
 
-See [documentation](docs.md).
+I attempted to document the development process, including how it all works and the reasoning behind some of the design decisions. See [documentation](docs.md).
 
 ## Acknowledgments
 

@@ -15,6 +15,8 @@ The operations that can be performed by the user are deliberately kept minimalis
 
 Another command is `USE`, which is for selecting between "keyspaces" – collections of key-value pairs that are assigned to their own map. Each keyspace has its own Append-Only Files and binary snapshots (see [Storage](#storage)), the names of which are the same as that of their corresponding keyspace to make it easy to locate and organize. The `logs/` directory is the default home for these storage files.
 
+Since the data structure used for in-memory storage is a hash table, sorted querying is not yet available.
+
 #### Interfaces
 
 Taproot currently supports command-line interface (CLI) and will soon be able to communicate via sockets using the default address and port as "localhost" and "6379", respectively. The default port number 6379 mimics that of Redis.
@@ -59,7 +61,7 @@ Taproot uses the built-in hash table included with the C++ standard library to p
 
 ## Performance
 
-This section is used to evaluate approximate performance based on generated dummy data. This is a record of some major improvements I noticed when changing a part of the system. This is not meant to be rigorous.
+This section is used to evaluate approximate performance based on generated dummy data. This is a record of some major improvements I noticed on my MacBook Air M1 when changing a part of the system. This is not meant to be rigorous.
 
 ---
 
