@@ -20,7 +20,7 @@ Taproot was developed to be a simple Redis-like clone for educational purposes w
 
 - Simple Redis-style functionality
 - Command-line and client-server interfaces (still in development)
-- Durable, fast, and human-readable append-only logs for persistent storage
+- Fast and human-readable append-only logs for persistent storage
 - Compaction, serialization, and LZ4 compression for binary snapshots
 - Minimal external dependencies
 

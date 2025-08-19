@@ -35,7 +35,7 @@ For this project, I prioritized using object-oriented programming (OOP) principl
 
 ## Storage 
 
-Taproot currently uses the built-in C++ hash tables (`unordered_map`) provided in the standard library for O(1) reads/writes of strings as well as Redis-style log storage consisting of `.aof` Append-Only Files and `.db` binary snapshots. 
+Taproot currently uses the built-in C++ hash tables (`std::unordered_map`) provided in the standard library for fast reads/writes of strings as well as Redis-style log storage consisting of `.aof` Append-Only Files and `.db` binary snapshots, which in tandem comprise the persistence mechanism. 
 
 #### Append-Only Files
 
@@ -57,7 +57,7 @@ As of August 2025, there is no longer any timestamping or log rotation: AOF writ
 
 #### Data Structures
 
-Taproot uses the built-in hash table included with the C++ standard library to prioritize speed over sorted queries; in the future I plan to implement my own hash tables as an educational exercise, and my own skip list to handle sorted data.
+Taproot uses the built-in hash table included with the C++ standard library to prioritize speed over sorted queries; hash tables have an average time complexity of O(1) at the cost of a bit more memory, while `std::map` has an average time complexity of O(log n). In the future, I plan to implement my own hash tables as an educational exercise.
 
 ## Performance
 
