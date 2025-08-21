@@ -19,7 +19,8 @@ cmake --build build -j$(sysctl -n hw.logicalcpu)
 if [ "$1" = "--test" ]; then
     shift
     echo "Performing tests..."
-    ./build/test $@
+    ./build/test $@ > test.log 2>&1
+    echo "Finished tests."
 # Run client with server in the background
 elif [ "$1" = "--cli" ]; then
     shift

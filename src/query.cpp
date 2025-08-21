@@ -16,7 +16,6 @@ Query::~Query() {
 
 void Query::parseCommand(const std::string& command) {
     // Parses user input query to execute the appropriate command
-    // TODO: switch to enum for commands
     if (command.length() == 0 || isAllSpace(command)) {
         return;
     }
