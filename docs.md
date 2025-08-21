@@ -61,7 +61,7 @@ Taproot uses the built-in hash table included with the C++ standard library to p
 
 ## Performance
 
-This section is used to evaluate approximate performance based on generated dummy data. This is a record of some major improvements I noticed on my MacBook Air M1 when changing a part of the system. This is not meant to be rigorous.
+This section is used to evaluate approximate performance based on generated dummy data. This is a record of some major improvements I noticed on my M1 MacBook Air over the course of development. This is not meant to be rigorous.
 
 ---
 
@@ -71,7 +71,7 @@ Naive rebuilding from AOF: 4ms, 18350ms, 3ms
 Pass state: 4ms, 13348ms, 2ms  
 Append buffer + No string formatting: 2ms, 12815ms, n/a  
 
-**Result from naive rebuild to buffer + pass state: ~30% time decrease.**
+**Result from naive rebuild to buffer + pass state: 30% time decrease (~1.4x speedup).**
 
 ---
 
@@ -81,6 +81,8 @@ _This is comparing my own naively self-implemented version of LZW for use in com
 
 Naive LZW compression: 12003ms  
 Default LZ4 library compression: 568ms  
+
+**Result: 95% time decrease (~21x speedup).**
 
 ---
 
@@ -92,7 +94,7 @@ Everysec + No string formatting: 4447ms
 Everysec + String formatting: 5837ms (good durability tradeoff)  
 Always + String formatting 7539ms (max durability)  
 
-**Result from always flushing to concurrent everysec flushing: ~22% time decrease.**
+**Result from always flushing to concurrent everysec flushing: 41% time decrease (~1.7x speedup).**
 
 _After adding everysec background thread, shutdown would take around 500ms on average due to the 1s interval wait. Adding an std::conditional_variable to immediately notify the thread on closeLog() prevented the extra unnecessary wait and dropped the time down from a sporadic range of [5ms, 1s] (often 500-600ms) to a consistent 3ms for normal workflows and 0ms for read-only workflows (due to false dirty flag)._
 
@@ -105,10 +107,12 @@ Everysec + No string formatting write: 17727ms
 LZW compression: 93033ms (118MB down to 72.5MB)  
 LZ4 compression: 2542ms (118MB down to 118MB, same because of random data)  
 
+**Result: 97% time decrease (~36x speedup).**
+
 ## Future
 
-I find database management and information retrieval systems very engaging. I am always seeking to learn more. At its core, Taproot is intended to be a Redis-style key-value store as well as my first foray into data management systems. But it also serves as a testbed for concepts I find interesting, like:
+I find database management and information retrieval systems very interesting and I am always seeking to learn more. Taproot is my first foray into data management systems, but it also serves as a testbed for concepts I would like to understand better, such as: 
 
-- Skip lists for sorted queries
-- Replication
-- JSON document support
+- Skip lists with sorted querying
+- Primary-secondary replication for read scaling
+- JSON document support with search
