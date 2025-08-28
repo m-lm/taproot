@@ -21,6 +21,7 @@ if [ "$1" = "--test" ]; then
     echo "Performing tests..."
     ./build/test $@ > test.log 2>&1
     echo "Finished tests."
+
 # Run client with server in the background
 elif [ "$1" = "--cli" ]; then
     shift
@@ -32,6 +33,7 @@ elif [ "$1" = "--cli" ]; then
     if kill -0 $SERVER_PID 2>/dev/null; then
         kill $SERVER_PID
     fi
+
 # Run the server only
 else
     echo "Running server..."
