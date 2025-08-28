@@ -1,4 +1,5 @@
 #pragma once
+#include "operations.h"
 #include <fstream>
 #include <vector>
 #include <mutex>
@@ -29,8 +30,6 @@ class Log {
         Log(const std::string& filename);
         virtual ~Log();
 
-        enum class Command { PUT, DEL };
-
         // Getters
         std::string getDbFilepath();
         std::string getLogFilepath();
@@ -39,7 +38,7 @@ class Log {
         void startAppendFlusher();
 
         // Storage mechanism
-        void appendCommand(Command cmd, const std::string& key, const std::string& value = "");
+        void appendCommand(Operation::Ops op, const std::string& key, const std::string& value = "");
         void writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state);
         void compactLog(const std::unordered_map<std::string, std::string>& state, const size_t dirty);
         std::vector<uint8_t> compress(const std::vector<uint8_t>& input);

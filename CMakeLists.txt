@@ -12,6 +12,7 @@ set(SHARED_SRC
   src/query.cpp
   src/utils.cpp
   src/config.cpp
+  src/operations.cpp
   third-party/lz4/lz4.c
 )
 

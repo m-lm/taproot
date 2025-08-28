@@ -43,6 +43,14 @@ std::vector<std::string> tokenize(const std::string& input) {
     return tokens;
 }
 
+std::string toLower(std::string input) {
+    // Convert input string to all lowercase
+    for (char &c : input) {
+        c = std::tolower(static_cast<unsigned char>(c));
+    }
+    return input;
+}
+
 std::string getTimestamp() {
     // Get current timestamp, especially useful for data versioning
     auto now = std::chrono::system_clock::now();

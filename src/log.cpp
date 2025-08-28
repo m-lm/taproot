@@ -72,7 +72,7 @@ void Log::startAppendFlusher() {
     });
 }
 
-void Log::appendCommand(Command cmd, const std::string& key, const std::string& value) {
+void Log::appendCommand(Operation::Ops op, const std::string& key, const std::string& value) {
     // Append and flush the "put"/"del" query to the log file
     if (!this->logfile.is_open()) {
         std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
@@ -81,11 +81,11 @@ void Log::appendCommand(Command cmd, const std::string& key, const std::string& 
 
     std::string line;
     line.reserve(256);
-    switch (cmd) {
-        case Command::PUT:
+    switch (op) {
+        case Operation::Ops::PUT:
             line = "put " + key + " " + value + "\n";
             break;
-        case Command::DEL:
+        case Operation::Ops::DEL:
             line = "del " + key + "\n";
             break;
         default:
