@@ -45,12 +45,10 @@ You can go in and edit the config file as needed, but you can also overwrite the
 
 ## Quickstart
 
-Once the server is running and your client is connected to it, you can start entering commands.
+Once the server is running and your client is connected to it, you can start entering commands. Below is an example; some output may be truncated for brevity.
 
 ```console
 ./run.sh --cli
-
-# Some output may be truncated for brevity
 
 tap> put claude shannon
 tap> put alan turing
@@ -74,6 +72,15 @@ tap> show
 
 alan: turing
 claude: shannon
+
+tap> put "hello world" goodbye
+tap> put physics "quantum entanglement"
+tap> show
+
+alan: turing
+claude: shannon
+"hello world": goodbye
+physics: "quantum entanglement"
 
 tap> quit
 

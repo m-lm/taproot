@@ -11,11 +11,11 @@ Taproot is a key-value store written in C++20 designed to be simple and easy to 
 
 #### Usage
 
-The operations that can be performed by the user are deliberately kept minimalist. The core workflow is meant to be simple, as evidenced by the relatively small number of commands that are currently supported. The basic operations like `PUT` (for adding/updating), `GET` (for retrieving), and `DEL` (for deleting) are included. Note that many systems may use `SET` instead of `PUT`; while `SET` may feel more natural, I decided to stick with `PUT` because it is more easily distinguished from the `GET` command.
+The operations that can be performed by the user are simple by design. The basic operations like `PUT` (for adding/updating), `GET` (for retrieving), and `DEL` (for deleting) are included and support the assignment of multi-word keys and values that are wrapped in quotations. As an aside: many systems use `SET` instead of `PUT`; while `SET` may feel more natural, I decided to stick with `PUT` because it is more easily distinguished from the `GET` command.
 
 Another command is `USE`, which is for selecting between "keyspaces" – collections of key-value pairs that are assigned to their own map. Each keyspace has its own Append-Only Files and binary snapshots (see [Storage](#storage)), the names of which are the same as that of their corresponding keyspace to make it easy to locate and organize. The `logs/` directory is the default home for these storage files.
 
-Since the data structure used for in-memory storage is a hash table, sorted querying is not yet available.
+Since the data structure used for in-memory storage is a hash table, sorted querying is not yet supported.
 
 #### Interfaces
 
