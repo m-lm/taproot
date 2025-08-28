@@ -27,13 +27,13 @@ Taproot was developed to be a simple Redis-like clone for educational purposes w
 ## Backlog
 
 - [x] Implement multi-word values
-- [] New commands (mset, mdel, stats, use)
-- [] Client-server networking via TCP sockets
-- [] Concurrent writes and log compaction (currently, compaction only occurs on shutdown)
-- [] Implement own hash table
-- [] Data import and export
-- [] Config options
-- [] Full binary snapshot backups
+- [ ] New commands (mset, mdel, stats, use)
+- [ ] Client-server networking via TCP sockets
+- [ ] Concurrent writes and log compaction (currently, compaction only occurs on shutdown)
+- [ ] Implement own hash table
+- [ ] Data import and export
+- [ ] Config options
+- [ ] Full binary snapshot backups
 
 ## Setup
 
