@@ -45,7 +45,7 @@ You can go in and edit the config file as needed, but you can also overwrite the
 
 ## Quickstart
 
-Once the server is running and your client is connected to it, you can start entering commands. Below is an example; some output may be truncated for brevity.
+Once the server is running and your client is connected to it, you can start entering commands.
 
 ```console
 ./run.sh --cli
@@ -90,7 +90,7 @@ Goodbye
 
 ## Documentation
 
-I attempted to document the development process, including how it all works and the reasoning behind some of the design decisions. See [documentation](docs.md).
+I attempted to document the development process, including how it all works and the reasoning behind the design decisions. See [documentation](docs.md).
 
 ## Acknowledgments
 

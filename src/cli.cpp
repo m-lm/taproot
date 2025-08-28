@@ -7,8 +7,9 @@
 #include <asio.hpp>
 
 void cli() {
-    // Command-line display for interacting with Taproot
-    const std::string welcome = R"(
+    /* Command-line display loop for interacting with Taproot. */
+
+    const std::string WELCOME = R"(
             taprootdb
     ----------------------------------
     ----------------------------------
@@ -18,6 +19,7 @@ void cli() {
     del     → delete key-value pair
     get     → retrieve value by key
     mget    → retrieve multiple values by key
+    mdel    → delete multiple values by key
     show    → display all key-value pairs
     help    → display commands
     quit    → close the program
@@ -30,21 +32,25 @@ void cli() {
         std::getline(std::cin, keyspaceName);
         break;
     }
-    std::cout << welcome << std::endl;
+    std::cout << WELCOME << std::endl;
     DB db(keyspaceName);
     Query query(db);
     while (true) {
         std::string input;
         std::cout << "\ntap> ";
         std::getline(std::cin, input);
+        std::vector<std::string> tokens = tokenize(input);
         if (input == "quit" || input == "exit") {
             break;
         }
         else if (input == "help") {
-            std::cout << welcome << std::endl;
+            std::cout << WELCOME << std::endl;
         }
         else if (input == "show") {
             db.display();
+        }
+        else if (tokens[0] == "use" && tokens.size() == 2) {
+            std::cout << "\nCommand not yet available." << std::endl;
         }
         else {
             query.parseCommand(input);
@@ -55,7 +61,7 @@ void cli() {
 }
 
 int main(int argc, char** argv) {
-    // Main entrypoint for command-line client
+    /* Main entrypoint for the command-line client. */
     const std::string configFilename = "config.cfg";
     Config cfg = parseConfig(configFilename);
 

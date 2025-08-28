@@ -28,6 +28,7 @@ class DB {
         bool del(const std::string& key);
         std::optional<std::string> get(const std::string& key) const;
         std::vector<std::optional<std::string>> mget(const std::vector<std::string>& keys) const;
+        void mdel(const std::vector<std::string>& keys);
         /*
         std::vector<const std::string&> getKeys() const;
         std::vector<const std::string&> getValues() const;

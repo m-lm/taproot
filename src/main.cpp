@@ -5,6 +5,8 @@
 #include <asio.hpp>
 
 int main() {
+    /* Entrypoint for setting up server process. */    
+
     // Configuration
     const std::string configFilename = "config.cfg";
     spawnConfig(configFilename);

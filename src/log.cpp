@@ -19,7 +19,7 @@
 #include <unistd.h> 
 
 Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName) {
-    // Logs (full changelogs) are owned by DB (store) objects
+    /* Logs are owned by the DB objects. */
     this->dbFilepath = std::format("logs/{}.db", this->keyspaceName);
     this->logFilepath = std::format("logs/{}.aof", this->keyspaceName);
 
@@ -27,7 +27,6 @@ Log::Log(const std::string& keyspaceName) : keyspaceName(keyspaceName) {
     if (this->fileDescriptor == -1) {
         throw std::runtime_error("Failed to open log file descriptor.");
     }
-
     this->logfile.open(this->logFilepath, std::ios::app);
     this->startAppendFlusher();
 }
@@ -39,17 +38,17 @@ Log::~Log() {
 }
 
 std::string Log::getDbFilepath() {
-    // Get the .db filepath for this keyspace
+    /* Get the .db filepath for the keyspace. */
     return this->dbFilepath;
 }
 
 std::string Log::getLogFilepath() {
-    // Get the .aof filepath for this keyspace
+    /* Get the .aof filepath for the keyspace. */
     return this->logFilepath;
 }
 
 void Log::startAppendFlusher() {
-    // Start background thread for the append buffer when writing commands to changelog for everysec
+    /* Start background thread for the append buffer when writing commands to AOF. Used to flush everysec and greater. */
     this->flushThread = std::thread([this]() {
         std::unique_lock<std::mutex> conditionVariableLock(this->conditionVariableMutex);
         while (!this->stopFlushThread) {
@@ -73,7 +72,7 @@ void Log::startAppendFlusher() {
 }
 
 void Log::appendCommand(Operation::Ops op, const std::string& key, const std::string& value) {
-    // Append and flush the "put"/"del" query to the log file
+    /* Append and flush the put/del queries to the AOF. */
     if (!this->logfile.is_open()) {
         std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
         return;
@@ -96,9 +95,11 @@ void Log::appendCommand(Operation::Ops op, const std::string& key, const std::st
 }
 
 void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>& state) {
-    // Takes the current final state (equivalent to compacted human-readable snapshot) and serializes to binary for performance
-    // The keyspace state is passed by reference from owner DB instance
-    // Binary format: [MAGIC][isCompressed bit][Keyspace size][Key1 size][Key1 data][Value1 size][Value1 data]...
+    /*
+    Takes the current final state and serializes to binary for performance.
+    The keyspace state is passed by reference from owner DB instance.
+    Binary format: [MAGIC][isCompressed bit][Keyspace size][Key1 size][Key1 data][Value1 size][Value1 data]...
+    */
     std::ostringstream datastream;
     size_t keyspaceSize = state.size();
     const char* MAGIC = "TDB";
@@ -153,7 +154,7 @@ void Log::writeBinarySnapshot(const std::unordered_map<std::string, std::string>
 
 
 std::vector<uint8_t> Log::compress(const std::vector<uint8_t>& input) {
-    // Wrapper to compress the binary-serialized compacted snapshot further using LZ4 compression
+    /* Wrapper to compress the binary-serialized compacted snapshot further by using LZ4 compression. */
     if (input.empty()) {
         return {};
     }
@@ -174,31 +175,30 @@ std::vector<uint8_t> Log::compress(const std::vector<uint8_t>& input) {
 }
 
 void Log::compactLog(const std::unordered_map<std::string, std::string>& state, const size_t dirty) {
-    // Compacts the Append-Only Log to reduce old or redundant queries
-    if (dirty <= 0) {
-        // Skip writes if no changes have been made, unless no snapshots are saved, in which case generate one
+    /* Compacts the AOF to reduce old or redundant queries. */
+    if (dirty <= 0 || state.empty()) {
+        // Skip writes if no changes have been made
         return;
     }
     std::string tempAof = std::format("logs/{}_temp.aof", this->keyspaceName);
     std::string buffer;
-    buffer.reserve(16777216);
+    const size_t ALLOTMENT = 16777216; // 2^24
+    buffer.reserve(ALLOTMENT);
 
     // Write to temporary .aof for replacement
-    if (!state.empty()) {
-        std::ofstream writer(tempAof);
-        if (writer.is_open()) {
-            for (const std::pair<const std::string, std::string>& pair : state) {
-                buffer += "put " + pair.first + " " + pair.second + "\n";
-            }
-            writer << buffer;
-            writer.close();
+    std::ofstream writer(tempAof);
+    if (writer.is_open()) {
+        for (const std::pair<const std::string, std::string>& pair : state) {
+            buffer += "put " + pair.first + " " + pair.second + "\n";
         }
+        writer << buffer;
+        writer.close();
     }
     std::filesystem::rename(tempAof, this->logFilepath);
 }
 
 void Log::closeLog() {
-    // Close the logfile including file descriptor and threads
+    /* Close the log file, cleaning up the file descriptor and threads. */
     this->stopFlushThread = true;
     this->conditionVariable.notify_one(); // If thread in between 1s interval, wake to close immediately
     if (flushThread.joinable()) {
