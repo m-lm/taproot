@@ -1,10 +1,10 @@
 # Taproot
 
-Taproot is a key-value store written in modern C++ with minimal dependencies, supporting data persistence through append-only logs and LZ4-compressed binary snapshots with compaction for storage efficiency. It supports networking via TCP sockets by leveraging Asio, and emphasizes simplicity in setup, configuration, and workflow – all while being self-contained and easy to use.
+Taproot is a key-value store written in C++20 with minimal dependencies, supporting data persistence through append-only logs and LZ4-compressed binary snapshots with compaction for storage efficiency. It also supports client-server interfacing via TCP sockets by leveraging Asio, and emphasizes simplicity in setup, configuration, and workflow – all while being self-contained and easy to use.
+
+Taproot was developed to be a simple Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems.
 
 -----
-
-Taproot was developed to be a simple Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems (especially NoSQL ones). In the process, I learned more about C++, system design, algorithms, and data structures.
 
 ## Table of Contents
 

@@ -12,7 +12,7 @@
 #include <chrono>
 
 std::pair<std::string, std::string> generateSample(const size_t length = 96, const bool random = true) {
-    // Generate dummy data for key-value pairs
+    /* Generate dummy data for key-value pairs. */
     std::string key(16, '\0');
     std::string val(length, '\0');
 

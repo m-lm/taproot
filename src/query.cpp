@@ -35,8 +35,7 @@ void Query::parseCommand(const std::string& command) {
         this->database.getLogger().appendCommand(Operation::convertStr(op), tokens[1]);
     }
     else if (op == "get" && tokens.size() == 2) {
-        std::optional<std::string> value = this->database.get(tokens[1]);
-        std::cout << *value << std::endl;
+        this->database.display(tokens[1]);
     }
     else if (op == "mget" && tokens.size() >= 3) {
         std::vector<std::string> keys;

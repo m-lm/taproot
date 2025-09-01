@@ -9,6 +9,7 @@
 #include <utility>
 #include <filesystem>
 #include <chrono>
+#include <ranges>
 
 DB::DB(const std::string& name) : name(name), logger(name), dirty(0) {
     /* Load data from AOF. */
@@ -26,6 +27,7 @@ DB::~DB() {
 
 void DB::put(const std::string& key, const std::string& value) {
     /* Add or update the key-value pair. */
+    /* USED IN API */
     this->store[key] = value;
     if (!this->replaying) {
         this->dirty++;
@@ -34,6 +36,7 @@ void DB::put(const std::string& key, const std::string& value) {
 
 bool DB::del(const std::string& key) {
     /* Delete the key-value pair from the store. */
+    /* USED IN API */
     int status = this->store.erase(key);
     if (status >= 1) {
         if (!this->replaying) {
@@ -46,6 +49,7 @@ bool DB::del(const std::string& key) {
 
 std::optional<std::string> DB::get(const std::string& key) const {
     /* Get the value of a specified key. */
+    /* USED IN API */
     auto iter = this->store.find(key);
     if (iter != this->store.end()) {
         return iter->second;
@@ -55,6 +59,7 @@ std::optional<std::string> DB::get(const std::string& key) const {
 
 std::vector<std::optional<std::string>> DB::mget(const std::vector<std::string>& keys) const {
     /* Get the values of multiple keys in a list. */
+    /* USED IN API */
     std::vector<std::optional<std::string>> results;
     for (const auto& key : keys) {
         results.push_back(this->get(key));
@@ -64,6 +69,7 @@ std::vector<std::optional<std::string>> DB::mget(const std::vector<std::string>&
 
 void DB::mdel(const std::vector<std::string>& keys) {
     /* Get the values of multiple keys in a list. */
+    /* USED IN API */
     std::vector<std::optional<std::string>> results;
     for (const auto& key : keys) {
         this->del(key);
@@ -98,7 +104,7 @@ void DB::loadFromLog() {
     }
 }
 
-void DB::display() {
+void DB::display() const {
     /* Display the key-value store in a readable format. */
     std::cout << "\n============" << std::endl;
     std::cout << std::format("| Key-values for keyspace: '{}'\n", this->name) << std::endl;
@@ -108,8 +114,15 @@ void DB::display() {
     std::cout << "============" << std::endl;
 }
 
-void DB::display(const std::vector<std::string>& keys) {
-    /* Display the key-value store in a readable format given a subset of keys. */
+void DB::display(const std::string& key) const {
+    /* Display the key-value store in a readable format given a single key. Used in GET display. */
+    std::cout << "\n============" << std::endl;
+    std::cout << *this->get(key) << std::endl;
+    std::cout << "============" << std::endl;
+}
+
+void DB::display(const std::vector<std::string>& keys) const {
+    /* Display the key-value store in a readable format given a subset of keys. Used in MGET display. */
     std::cout << "\n============" << std::endl;
     for (const auto& item : this->store) {
         if (contains(keys, item.first)) {
@@ -117,6 +130,55 @@ void DB::display(const std::vector<std::string>& keys) {
         }
     }
     std::cout << "============" << std::endl;
+}
+
+void DB::displayKeys() const {
+    /* Display the keys of the key-value store in a readable format. */
+    std::cout << "\n============" << std::endl;
+    std::cout << std::format("| Keys for keyspace: '{}'\n", this->name) << std::endl;
+    for (const auto& key : this->getKeys()) {
+        std::cout << key << std::endl;
+    }
+    std::cout << "============" << std::endl;
+}
+
+void DB::displayValues() const {
+    /* Display the values of the key-value store in a readable format. */
+    std::cout << "\n============" << std::endl;
+    std::cout << std::format("| Values for keyspace: '{}'\n", this->name) << std::endl;
+    for (const auto& value : this->getValues()) {
+        std::cout << value << std::endl;
+    }
+    std::cout << "============" << std::endl;
+}
+
+std::vector<std::string> DB::getKeys() const {
+    /* Get currently stored keys. */
+    auto keys = std::views::keys(this->store);
+    return {keys.begin(), keys.end()};
+}
+
+std::vector<std::string> DB::getValues() const {
+    /* Get currently stored values. */
+    auto values = std::views::values(this->store);
+    return {values.begin(), values.end()};
+}
+
+std::vector<std::pair<std::string, std::string>> DB::getItems() const {
+    /* Get all currently stored copies of key-value pairs. */
+    /* USED IN API */
+    return {this->store.begin(), this->store.end()};
+}
+
+std::vector<std::pair<std::string, std::optional<std::string>>> DB::getItems(const std::vector<std::string>& keys) const {
+    /* Get currently stored copies of key-value pairs given a subset of keys. Similar to MGET, except return both keys and values. Also similar to overloaded display, except returns a vector. */
+    /* USED IN API */
+    std::vector<std::pair<std::string, std::optional<std::string>>> results;
+    results.reserve(keys.size());
+    for (const auto& key : keys) {
+        results.emplace_back(key, this->get(key));
+    }
+    return results;
 }
 
 void DB::shutdown() {

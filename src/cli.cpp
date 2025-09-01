@@ -14,13 +14,17 @@ void cli() {
     ----------------------------------
     ----------------------------------
    
-    use     → switch keyspace
     put     → store value by key
     del     → delete key-value pair
     get     → retrieve value by key
     mget    → retrieve multiple values by key
     mdel    → delete multiple values by key
+
     show    → display all key-value pairs
+    keys    → display all keys
+    values  → display all values
+
+    use     → switch keyspace
     help    → display commands
     quit    → close the program
     
@@ -46,11 +50,17 @@ void cli() {
         else if (input == "help") {
             std::cout << WELCOME << std::endl;
         }
+        else if (tokens[0] == "use" && tokens.size() == 2) {
+            std::cout << "\nCommand not yet available." << std::endl;
+        }
         else if (input == "show") {
             db.display();
         }
-        else if (tokens[0] == "use" && tokens.size() == 2) {
-            std::cout << "\nCommand not yet available." << std::endl;
+        else if (input == "keys") {
+            db.displayKeys();
+        }
+        else if (input == "values") {
+            db.displayValues();
         }
         else {
             query.parseCommand(input);
