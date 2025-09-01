@@ -25,6 +25,7 @@ void cli() {
     values  → display all values
 
     use     → switch keyspace
+    stats   → display stats
     help    → display commands
     quit    → close the program
     
@@ -49,6 +50,9 @@ void cli() {
         }
         else if (input == "help") {
             std::cout << WELCOME << std::endl;
+        }
+        else if (input == "stats") {
+            db.displayStats();
         }
         else if (tokens[0] == "use" && tokens.size() == 2) {
             std::cout << "\nCommand not yet available." << std::endl;

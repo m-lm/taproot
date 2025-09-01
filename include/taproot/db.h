@@ -41,6 +41,7 @@ class DB {
         void display(const std::vector<std::string>& keys) const;
         void displayKeys() const;
         void displayValues() const;
+        void displayStats() const;
 
         // General getters
         std::vector<std::string> getKeys() const;

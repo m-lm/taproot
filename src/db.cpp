@@ -152,6 +152,20 @@ void DB::displayValues() const {
     std::cout << "============" << std::endl;
 }
 
+void DB::displayStats() const {
+    /* Display useful statistics of the key-value store. */
+    std::cout << "\n============" << std::endl;
+    std::cout << std::format("| Stats for keyspace: '{}'\n", this->name) << std::endl;
+    std::cout << "Total keys: " << this->store.size() << std::endl;
+
+    size_t totalBytes = 0;
+    for (const auto& [key, value] : this->store) {
+        totalBytes += key.size() + value.size();
+    }
+    std::cout << "Total bytes: " << totalBytes << std::endl;
+    std::cout << "============" << std::endl;
+}
+
 std::vector<std::string> DB::getKeys() const {
     /* Get currently stored keys. */
     auto keys = std::views::keys(this->store);
