@@ -13,7 +13,7 @@ Config parseConfig(const std::string& filename) {
     std::ifstream file(filename);
     Config cfg;
     if (!file.is_open()) {
-        std::cout << std::format("\nError: Config file {} has not been opened.\n", filename) << std::endl;
+        std::cerr << std::format("\nError: Config file {} has not been opened.\n", filename) << std::endl;
         return cfg;
     }
 
@@ -38,13 +38,13 @@ Config parseConfig(const std::string& filename) {
         validateHost(cfg, map["host"]);
     }
     else {
-        std::cout << std::format("Invalid host address: using {} instead.", cfg.host) << std::endl;
+        std::cerr << std::format("Invalid host address: using {} instead.", cfg.host) << std::endl;
     }
     if (map.count("port")) {
         validatePort(cfg, map["port"]);
     }
     else {
-        std::cout << std::format("Invalid port: using {} instead.", cfg.port) << std::endl;
+        std::cerr << std::format("Invalid port: using {} instead.", cfg.port) << std::endl;
     }
     file.close();
     return cfg;
@@ -56,7 +56,7 @@ bool validateHost(Config& cfg, std::string host) {
         asio::error_code err;
         asio::ip::make_address(host, err);
         if (err) {
-            std::cout << std::format("{}\nInvalid host address: using {} instead.", err.message(), cfg.host) << std::endl;
+            std::cerr << std::format("{}\nInvalid host address: using {} instead.", err.message(), cfg.host) << std::endl;
             return false;
         }
         else {
@@ -64,7 +64,7 @@ bool validateHost(Config& cfg, std::string host) {
         }
     }
     else {
-        std::cout << std::format("Invalid host address: using {} instead.", cfg.host) << std::endl;
+        std::cerr << std::format("Invalid host address: using {} instead.", cfg.host) << std::endl;
         return false;
     }
     return true;
@@ -75,7 +75,7 @@ bool validatePort(Config& cfg, std::string port) {
     try {
         int portNumber = std::stoi(port);
         if (portNumber < 0 || portNumber > 65535) {
-            std::cout << std::format("Port number out of range: using {} instead.", cfg.port) << std::endl;
+            std::cerr << std::format("Port number out of range: using {} instead.", cfg.port) << std::endl;
             return false;
         }
         else {
@@ -83,7 +83,7 @@ bool validatePort(Config& cfg, std::string port) {
         }
     }
     catch (const std::exception& e) {
-        std::cout << std::format("{}\nInvalid port: using {} instead.", e.what(), cfg.port) << std::endl;
+        std::cerr << std::format("{}\nInvalid port: using {} instead.", e.what(), cfg.port) << std::endl;
         return false;
     }
     return true;

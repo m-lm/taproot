@@ -101,7 +101,7 @@ void DB::loadFromLog() {
         loader.close();
     }
     else {
-        std::cout << "Note: Log not loaded." << std::endl;
+        std::cerr << "Note: Log not loaded." << std::endl;
     }
 }
 
@@ -242,10 +242,10 @@ void DB::parseCommand(const std::string& command) {
             {"mdel", "mdel <KEY1> <KEY2> ... <KEYN>"},
         };
         if (tips.count(op) > 0) {
-            std::cout << std::format("\nInvalid operator usage: '{}' ({})", op, tips.at(op)) << std::endl;
+            std::cerr << std::format("\nInvalid operator usage: '{}' ({})", op, tips.at(op)) << std::endl;
         }
         else {
-            std::cout << "\nPlease use 'put', 'get', and 'del' operators as first keyword, or use 'help' for more." << std::endl;
+            std::cerr << "\nPlease use 'put', 'get', and 'del' operators as first keyword, or use 'help' for more." << std::endl;
         }
     }
 }

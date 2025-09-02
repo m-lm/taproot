@@ -35,7 +35,7 @@ int main() {
         std::cout << std::format("Client successfully connected...", cfg.host, cfg.port) << std::endl;
     }
     else {
-        std::cout << std::format("Client failed to connect: {}...", err.message()) << std::endl;
+        std::cerr << std::format("Client failed to connect: {}...", err.message()) << std::endl;
     }
 
     acceptor.close();

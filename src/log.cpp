@@ -74,7 +74,7 @@ void Log::startAppendFlusher() {
 void Log::appendCommand(Operation::Ops op, const std::string& key, const std::string& value) {
     /* Append and flush the put/del queries to the AOF. */
     if (!this->logfile.is_open()) {
-        std::cout << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
+        std::cerr << std::format("\nError: Logfile {} has not been opened.\n", this->keyspaceName) << std::endl;
         return;
     }
 

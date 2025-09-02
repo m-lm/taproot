@@ -104,14 +104,14 @@ int main(int argc, char** argv) {
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        std::cout << "Retrying..." << std::endl;
+        std::cerr << "Retrying..." << std::endl;
     }
 
     if (!err) {
         std::cout << std::format("Successfully connected to address '{}:{}'", cfg.host, cfg.port) << std::endl;
     }
     else {
-        std::cout << std::format("Failed to connect to address '{}:{}': {}", cfg.host, cfg.port, err.message()) << std::endl;
+        std::cerr << std::format("Failed to connect to address '{}:{}': {}", cfg.host, cfg.port, err.message()) << std::endl;
         return 1;
     }
 
