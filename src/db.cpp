@@ -227,14 +227,20 @@ void DB::parseCommand(const std::string& command) {
         std::optional<std::string> value = this->get(tokens[1]); // Actual retrieved value
         this->display(tokens[1]);
     }
-    else if (op == "mput" && tokens.size() >= 3) {
-        std::vector<std::string> items(tokens.begin() + 1, tokens.end());
+    else if (op == "mput" && tokens.size() >= 5 && tokens.size() % 2 != 0) { // Make sure command length is odd as well for setting key-value pairs
+        std::vector<std::string> items;
+        for (size_t i = 1; i < tokens.size(); i += 2) {
+            items.push_back(tokens[i]);
+            items.push_back(tokens[i+1]);
+            this->getLogger().appendCommand(Operation::convertStr(op.substr(1)), tokens[i], tokens[i+1]);
+        }
         this->mput(items);
     }
     else if (op == "mdel" && tokens.size() >= 3) {
         std::vector<std::string> keys;
         for (size_t i = 1; i < tokens.size(); i++) {
             keys.push_back(tokens[i]);
+            this->getLogger().appendCommand(Operation::convertStr(op.substr(1)), tokens[i]);
         }
         this->mdel(keys);
     }
