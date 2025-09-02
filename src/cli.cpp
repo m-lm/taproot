@@ -1,5 +1,4 @@
 #include "taproot/db.h"
-#include "taproot/query.h"
 #include "taproot/utils.h"
 #include "taproot/config.h"
 #include <iostream>
@@ -39,15 +38,12 @@ void cli() {
     }
     std::cout << WELCOME << std::endl;
     DB db(keyspaceName);
-    Query query(db);
     while (true) {
         std::string input;
         std::cout << "\ntap> ";
         std::getline(std::cin, input);
         std::vector<std::string> tokens = tokenize(input);
-        if (input == "quit" || input == "exit") {
-            break;
-        }
+        if (input == "quit" || input == "exit") break;
         else if (input == "help") {
             std::cout << WELCOME << std::endl;
         }
@@ -67,7 +63,7 @@ void cli() {
             db.displayValues();
         }
         else {
-            query.parseCommand(input);
+            db.parseCommand(input);
         }
     }
     std::cout << "\nGoodbye\n" << std::endl;

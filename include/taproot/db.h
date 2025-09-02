@@ -6,14 +6,11 @@
 #include <utility>
 #include <memory>
 
-class Query;
-
 class DB {
     protected:
         std::unordered_map<std::string, std::string> store;
         std::string name;
         Log logger;
-        std::unique_ptr<Query> query;
         bool replaying;
         size_t dirty;
 
@@ -28,7 +25,7 @@ class DB {
         bool del(const std::string& key);
         std::optional<std::string> get(const std::string& key) const;
         std::vector<std::optional<std::string>> mget(const std::vector<std::string>& keys) const;
-        void mdel(const std::vector<std::string>& keys);
+        bool mdel(const std::vector<std::string>& keys);
 
         // Log functionality
         bool isReplaying();
@@ -48,6 +45,9 @@ class DB {
         std::vector<std::string> getValues() const;
         std::vector<std::pair<std::string, std::string>> getItems() const;
         std::vector<std::pair<std::string, std::optional<std::string>>> getItems(const std::vector<std::string>& keys) const;
+
+        // Incoming command parser
+        void parseCommand(const std::string& command);
 
         // Shutdown key-value store
         void shutdown();

@@ -9,7 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SHARED_SRC
   src/db.cpp
   src/log.cpp
-  src/query.cpp
   src/utils.cpp
   src/config.cpp
   src/operations.cpp

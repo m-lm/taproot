@@ -34,6 +34,12 @@ std::vector<std::string> tokenize(const std::string& input) {
                 buffer << " " << token;
             }
             std::string multiwordToken = buffer.str();
+
+            if (multiwordToken.find(' ') == std::string::npos) {
+                // Space does not exist, so even though the token has quotations it only contains one word in actuality. So, remove quotes from beginning and end.
+                multiwordToken = multiwordToken.substr(1, multiwordToken.size() - 2);
+            }
+
             tokens.push_back(multiwordToken);
         }
         else {
