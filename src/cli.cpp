@@ -15,8 +15,9 @@ void welcome() {
     put     → store value by key
     del     → delete key-value pair
     get     → retrieve value by key
-    mget    → retrieve multiple values by key
+    mput    → store multiple values by key
     mdel    → delete multiple values by key
+    mget    → retrieve multiple values by key
 
     show    → display all key-value pairs
     keys    → display all keys

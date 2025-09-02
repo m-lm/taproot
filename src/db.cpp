@@ -54,14 +54,12 @@ std::optional<std::string> DB::get(const std::string& key) const {
     return std::nullopt;
 }
 
-std::vector<std::optional<std::string>> DB::mget(const std::vector<std::string>& keys) const {
-    /* Get the values of multiple keys in a list. */
+void DB::mput(const std::vector<std::string>& items) {
+    /* Add or update a subset of key-value pairs in vector of tokenized strings format, in the form of <Key1> <Value1> <Key2> <Value2> ... <KeyN> <ValueN>. */
     /* USED IN API */
-    std::vector<std::optional<std::string>> results;
-    for (const auto& key : keys) {
-        results.push_back(this->get(key));
+    for (size_t i = 0; i < items.size(); i += 2) {
+        this->put(items[i], items[i+1]);
     }
-    return results;
 }
 
 bool DB::mdel(const std::vector<std::string>& keys) {
@@ -75,6 +73,16 @@ bool DB::mdel(const std::vector<std::string>& keys) {
         }
     }
     return status;
+}
+
+std::vector<std::optional<std::string>> DB::mget(const std::vector<std::string>& keys) const {
+    /* Get the values of multiple keys in a list. */
+    /* USED IN API */
+    std::vector<std::optional<std::string>> results;
+    for (const auto& key : keys) {
+        results.push_back(this->get(key));
+    }
+    return results;
 }
 
 bool DB::isReplaying() {
@@ -216,15 +224,12 @@ void DB::parseCommand(const std::string& command) {
         this->getLogger().appendCommand(Operation::convertStr(op), tokens[1]);
     }
     else if (op == "get" && tokens.size() == 2) {
+        std::optional<std::string> value = this->get(tokens[1]); // Actual retrieved value
         this->display(tokens[1]);
     }
-    else if (op == "mget" && tokens.size() >= 3) {
-        std::vector<std::string> keys;
-        for (size_t i = 1; i < tokens.size(); i++) {
-            keys.push_back(tokens[i]);
-        }
-        std::vector<std::optional<std::string>> values = this->mget(keys);
-        this->display(keys);
+    else if (op == "mput" && tokens.size() >= 3) {
+        std::vector<std::string> items(tokens.begin() + 1, tokens.end());
+        this->mput(items);
     }
     else if (op == "mdel" && tokens.size() >= 3) {
         std::vector<std::string> keys;
@@ -233,13 +238,22 @@ void DB::parseCommand(const std::string& command) {
         }
         this->mdel(keys);
     }
+    else if (op == "mget" && tokens.size() >= 3) {
+        std::vector<std::string> keys;
+        for (size_t i = 1; i < tokens.size(); i++) {
+            keys.push_back(tokens[i]);
+        }
+        std::vector<std::optional<std::string>> values = this->mget(keys); // Actual retrieved values
+        this->display(keys);
+    }
     else {
         const std::unordered_map<std::string, std::string> tips = {
             {"put", "put <KEY> <VALUE>"},
             {"del", "del <KEY>"},
             {"get", "get <KEY>"},
-            {"mget", "mget <KEY1> <KEY2> ... <KEYN>"},
+            {"mput", "mput <KEY1> <VALUE1> <KEY2> <VALUE2> ... <KEYN> <VALUEN>"},
             {"mdel", "mdel <KEY1> <KEY2> ... <KEYN>"},
+            {"mget", "mget <KEY1> <KEY2> ... <KEYN>"},
         };
         if (tips.count(op) > 0) {
             std::cerr << std::format("\nInvalid operator usage: '{}' ({})", op, tips.at(op)) << std::endl;

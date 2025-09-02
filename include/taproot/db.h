@@ -24,8 +24,9 @@ class DB {
         void put(const std::string& key, const std::string& value);
         bool del(const std::string& key);
         std::optional<std::string> get(const std::string& key) const;
-        std::vector<std::optional<std::string>> mget(const std::vector<std::string>& keys) const;
+        void mput(const std::vector<std::string>& items);
         bool mdel(const std::vector<std::string>& keys);
+        std::vector<std::optional<std::string>> mget(const std::vector<std::string>& keys) const;
 
         // Log functionality
         bool isReplaying();
