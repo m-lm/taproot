@@ -5,9 +5,8 @@
 #include <cctype>
 #include <asio.hpp>
 
-void cli() {
-    /* Command-line display loop for interacting with Taproot. */
-
+void welcome() {
+    /* Startup display for command-line. */
     const std::string WELCOME = R"(
             taprootdb
     ----------------------------------
@@ -27,17 +26,17 @@ void cli() {
     stats   → display stats
     help    → display commands
     quit    → close the program
-    
     )";
-
-    std::string keyspaceName;
-    while (true) {
-        std::cout << "\nEnter keyspace to use\n> ";
-        std::getline(std::cin, keyspaceName);
-        break;
-    }
     std::cout << WELCOME << std::endl;
-    DB db(keyspaceName);
+}
+
+void cli() {
+    /* Command-line display loop for interacting with Taproot. */
+    std::string keyspaceName;
+    std::cout << "\nEnter keyspace to use\n> ";
+    std::getline(std::cin, keyspaceName);
+    welcome();
+    std::unique_ptr<DB> db = std::make_unique<DB>(keyspaceName);
     while (true) {
         std::string input;
         std::cout << "\ntap> ";
@@ -45,29 +44,37 @@ void cli() {
         std::vector<std::string> tokens = tokenize(input);
         if (input == "quit" || input == "exit") break;
         else if (input == "help") {
-            std::cout << WELCOME << std::endl;
+            welcome();
         }
         else if (input == "stats") {
-            db.displayStats();
+            db->displayStats();
         }
         else if (tokens[0] == "use" && tokens.size() == 2) {
-            std::cout << "\nCommand not yet available." << std::endl;
+            try {
+                db->shutdown();
+                db = std::make_unique<DB>(tokens[1]);
+                std::cout << "\nSwitched keyspace to " << tokens[1] << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "\nFailed to switch keyspace to " << tokens[1] << std::endl;
+            }
+            welcome();
+            continue;
         }
         else if (input == "show") {
-            db.display();
+            db->display();
         }
         else if (input == "keys") {
-            db.displayKeys();
+            db->displayKeys();
         }
         else if (input == "values") {
-            db.displayValues();
+            db->displayValues();
         }
         else {
-            db.parseCommand(input);
+            db->parseCommand(input);
         }
     }
-    std::cout << "\nGoodbye\n" << std::endl;
 
+    std::cout << "\nGoodbye\n" << std::endl;
 }
 
 int main(int argc, char** argv) {
