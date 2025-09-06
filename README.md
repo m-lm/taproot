@@ -88,6 +88,8 @@ Goodbye
 
 ```
 
+More examples can be found [here](examples.md).
+
 ## Documentation
 
 I attempted to document the development process, including how it all works and the reasoning behind the design decisions. See [documentation](docs.md).
