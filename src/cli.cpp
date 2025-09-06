@@ -24,6 +24,7 @@ void welcome() {
     values  → display all values
 
     use     → switch keyspace
+    clear   → delete all data from keyspace (!)
     stats   → display stats
     help    → display commands
     quit    → close the program
@@ -49,6 +50,15 @@ void cli() {
         }
         else if (input == "stats") {
             db->displayStats();
+        }
+        else if (input == "clear") {
+            std::string confirmation;
+            std::cout << "Confirm deletion of ALL data (y/n)\n> ";
+            std::getline(std::cin, confirmation);
+            if (toLower(confirmation) == "y") {
+                db->clearData();
+                std::cout << "\nData successfully deleted." << std::endl;
+            }
         }
         else if (tokens[0] == "use" && tokens.size() == 2) {
             try {

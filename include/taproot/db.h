@@ -27,6 +27,7 @@ class DB {
         void mput(const std::vector<std::string>& items);
         bool mdel(const std::vector<std::string>& keys);
         std::vector<std::optional<std::string>> mget(const std::vector<std::string>& keys) const;
+        void clearData();
 
         // Log functionality
         bool isReplaying();

@@ -85,6 +85,14 @@ std::vector<std::optional<std::string>> DB::mget(const std::vector<std::string>&
     return results;
 }
 
+void DB::clearData() {
+    /* Deletes ALL data from the store, both in-memory and in files. */
+    /* Does not use MDEL; instead, it directly wipes the AOF and the map. */
+    /* USED IN API */
+    this->store.clear();
+    std::remove(this->logger.getLogFilepath().c_str());
+}
+
 bool DB::isReplaying() {
     /* Get replay status. */
     return this->replaying;
