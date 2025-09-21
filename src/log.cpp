@@ -178,6 +178,9 @@ void Log::compactLog(const std::unordered_map<std::string, std::string>& state, 
     /* Compacts the AOF to reduce old or redundant queries. */
     if (dirty <= 0 || state.empty()) {
         // Skip writes if no changes have been made
+        std::cout << dirty << std::endl;
+        std::cout << state.empty() << std::endl;
+        std::cout << "COMPACTION" << std::endl;
         return;
     }
     std::string tempAof = std::format("logs/{}_temp.aof", this->keyspaceName);

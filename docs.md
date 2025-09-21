@@ -53,11 +53,11 @@ Originally, three file types were used: changelogs, AOFs, and binary snapshots. 
 
 An example of a problem that became a very real issue during development was this: How do I keep the three different files synced? If the program runs and is interacted with by the user as intended, this is not necessarily a cause for concern. But what happens when the latest AOFs are missing and the changelog is up-to-date? The keyspace states of each file would be out of sync because the AOFs would be stale. On startup, the system would read the AOF and have the outdated data. On shutdown, any mutable commands run would be appended to the changelog indiscriminately. At this point, the changelog is corrupted because consensus is not reached. This problem was the primary reason I decided to use two files – it also happens to be closer to the way Redis implements its storage.
  
-As of August 2025, there is no longer any timestamping or log rotation: AOF writes basically happen in-place. In the future, I am considering introducing it as an option within a config system.
+There is no longer any timestamping or log rotation: AOF writes basically happen in-place. In the future, I am considering introducing it as an option within a config system.
 
 #### Data Structures
 
-Taproot uses the built-in hash table included with the C++ standard library to prioritize speed over sorted queries; hash tables have an average time complexity of O(1) at the cost of a bit more memory, while `std::map` has an average time complexity of O(log n). In the future, I plan to implement my own hash tables as an educational exercise.
+Taproot uses the built-in hash table included with the C++ standard library to prioritize speed over sorted queries; hash tables have a time complexity of O(1) at the cost of a bit more memory, while `std::map` has a time complexity of O(log n). In the future, I plan to implement my own hash tables as an educational exercise.
 
 ## Performance
 
@@ -108,11 +108,3 @@ LZW compression: 93033ms (118MB down to 72.5MB)
 LZ4 compression: 2542ms (118MB down to 118MB, same because of random data)  
 
 **Result: 97% time decrease (~36x speedup).**
-
-## Future
-
-I find database management and information retrieval systems very interesting and I am always seeking to learn more. Taproot is my first foray into data management systems, but it also serves as a testbed for concepts I would like to understand better, such as: 
-
-- Skip lists with sorted querying
-- Primary-secondary replication for read scaling
-- JSON document support with search

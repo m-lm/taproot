@@ -9,13 +9,14 @@
 #include <filesystem>
 #include <chrono>
 #include <ranges>
+#include <sstream>
 
-DB::DB(const std::string& name) : name(name), logger(name), dirty(0) {
+DB::DB(const std::string& name) : name(name), logger(std::make_unique<Log>(name)), dirty(0) {
     /* Load data from AOF. */
     this->loadFromLog();
 }
 
-DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name), logger(name) {
+DB::DB(const std::string& name, const std::unordered_map<std::string, std::string>& store) : store(store), name(name), logger(std::make_unique<Log>(name)) {
 }
 
 DB::~DB() {
@@ -90,17 +91,12 @@ void DB::clearData() {
     /* Does not use MDEL; instead, it directly wipes the AOF and the map. */
     /* USED IN API */
     this->store.clear();
-    std::remove(this->logger.getLogFilepath().c_str());
+    std::ofstream file(this->logger->getLogFilepath(), std::ios::out | std::ios::trunc); // Delete file and respawn an empty one before closing
 }
 
 bool DB::isReplaying() {
     /* Get replay status. */
     return this->replaying;
-}
-
-Log& DB::getLogger() {
-    /* Return logger private member variable. */
-    return this->logger;
 }
 
 void DB::loadFromLog() {
@@ -121,66 +117,79 @@ void DB::loadFromLog() {
     }
 }
 
-void DB::display() const {
+std::string DB::display() const {
     /* Display the key-value store in a readable format. */
-    std::cout << "\n============" << std::endl;
-    std::cout << std::format("| Key-values for keyspace: '{}'\n", this->name) << std::endl;
+    std::ostringstream buffer;
+    buffer << "\n============\n";
+    buffer << std::format("| Key-values for keyspace: '{}'\n", this->name);
     for (const auto& item : this->store) {
-        std::cout << item.first + ": " + item.second << std::endl;
+        buffer << item.first + ": " + item.second << "\n";
     }
-    std::cout << "============" << std::endl;
+    buffer << "============\n";
+    return buffer.str();
 }
 
-void DB::display(const std::string& key) const {
+std::string DB::display(const std::string& key) const {
     /* Display the key-value store in a readable format given a single key. Used in GET display. */
-    std::cout << "\n============" << std::endl;
-    std::cout << *this->get(key) << std::endl;
-    std::cout << "============" << std::endl;
+    std::ostringstream buffer;
+    buffer << "\n============\n";
+    buffer << *this->get(key) << "\n";
+    buffer << "============\n";
+    return buffer.str();
 }
 
-void DB::display(const std::vector<std::string>& keys) const {
+std::string DB::display(const std::vector<std::string>& keys) const {
     /* Display the key-value store in a readable format given a subset of keys. Used in MGET display. */
-    std::cout << "\n============" << std::endl;
+    std::ostringstream buffer;
+    buffer << "\n============\n";
+    buffer << std::format("| Key-values for keyspace: '{}'\n", this->name);
     for (const auto& item : this->store) {
         if (contains(keys, item.first)) {
-            std::cout << item.first + ": " + item.second << std::endl;
+            buffer << item.first + ": " + item.second << "\n";
         }
     }
-    std::cout << "============" << std::endl;
+    buffer << "============\n";
+    return buffer.str();
 }
 
-void DB::displayKeys() const {
+std::string DB::displayKeys() const {
     /* Display the keys of the key-value store in a readable format. */
-    std::cout << "\n============" << std::endl;
-    std::cout << std::format("| Keys for keyspace: '{}'\n", this->name) << std::endl;
+    std::ostringstream buffer;
+    buffer << "\n============\n";
+    buffer << std::format("| Keys for keyspace: '{}'\n", this->name);
     for (const auto& key : this->getKeys()) {
-        std::cout << key << std::endl;
+        buffer << key << "\n";
     }
-    std::cout << "============" << std::endl;
+    buffer << "============\n";
+    return buffer.str();
 }
 
-void DB::displayValues() const {
+std::string DB::displayValues() const {
     /* Display the values of the key-value store in a readable format. */
-    std::cout << "\n============" << std::endl;
-    std::cout << std::format("| Values for keyspace: '{}'\n", this->name) << std::endl;
+    std::ostringstream buffer;
+    buffer << "\n============\n";
+    buffer << std::format("| Values for keyspace: '{}'\n", this->name);
     for (const auto& value : this->getValues()) {
-        std::cout << value << std::endl;
+        buffer << value << "\n";
     }
-    std::cout << "============" << std::endl;
+    buffer << "============\n";
+    return buffer.str();
 }
 
-void DB::displayStats() const {
+std::string DB::displayStats() const {
     /* Display useful statistics of the key-value store. */
-    std::cout << "\n============" << std::endl;
-    std::cout << std::format("| Stats for keyspace: '{}'\n", this->name) << std::endl;
-    std::cout << "Total keys: " << this->store.size() << std::endl;
+    std::ostringstream buffer;
+    buffer << "\n============\n";
+    buffer << std::format("| Stats for keyspace: '{}'\n", this->name);
+    buffer << "Total keys: " << this->store.size() << "\n";
 
     size_t totalBytes = 0;
     for (const auto& [key, value] : this->store) {
         totalBytes += key.size() + value.size();
     }
-    std::cout << "Total bytes: " << totalBytes << std::endl;
-    std::cout << "============" << std::endl;
+    buffer << "Total bytes: " << totalBytes << "\n";
+    buffer << "============\n";
+    return buffer.str();
 }
 
 std::vector<std::string> DB::getKeys() const {
@@ -212,10 +221,11 @@ std::vector<std::pair<std::string, std::optional<std::string>>> DB::getItems(con
     return results;
 }
 
-void DB::parseCommand(const std::string& command) {
+std::vector<std::string> DB::parseCommand(const std::string& command) {
     /* Parses whole input query to execute the appropriate command like a dispatcher. */
     if (command.length() == 0 || isAllSpace(command)) {
-        return;
+        std::cerr << "Empty command." << std::endl;
+        return {};
     }
 
     const std::vector<std::string> tokens = tokenize(command);
@@ -224,23 +234,25 @@ void DB::parseCommand(const std::string& command) {
     if (op == "put" && tokens.size() == 3) {
         this->put(tokens[1], tokens[2]);
         if (!this->isReplaying()) { // If replay is off, it will append commands to the AOF. If it is on, it will load data. Not advised for loadFromLog() on startup; use replay=true for loading.
-            this->getLogger().appendCommand(Operation::convertStr(op), tokens[1], tokens[2]);
+            this->logger->appendCommand(Operation::convertStr(op), tokens[1], tokens[2]);
         }
     }
     else if (op == "del" && tokens.size() == 2) {
         this->del(tokens[1]);
-        this->getLogger().appendCommand(Operation::convertStr(op), tokens[1]);
+        if (!this->isReplaying()) {
+            this->logger->appendCommand(Operation::convertStr(op), tokens[1]);
+        }
     }
     else if (op == "get" && tokens.size() == 2) {
         std::optional<std::string> value = this->get(tokens[1]); // Actual retrieved value
-        this->display(tokens[1]);
+        return value ? std::vector<std::string>{*value} : std::vector<std::string>{};
     }
     else if (op == "mput" && tokens.size() >= 5 && tokens.size() % 2 != 0) { // Make sure command length is odd as well for setting key-value pairs
         std::vector<std::string> items;
         for (size_t i = 1; i < tokens.size(); i += 2) {
             items.push_back(tokens[i]);
             items.push_back(tokens[i+1]);
-            this->getLogger().appendCommand(Operation::convertStr(op.substr(1)), tokens[i], tokens[i+1]);
+            this->logger->appendCommand(Operation::convertStr(op.substr(1)), tokens[i], tokens[i+1]);
         }
         this->mput(items);
     }
@@ -248,7 +260,7 @@ void DB::parseCommand(const std::string& command) {
         std::vector<std::string> keys;
         for (size_t i = 1; i < tokens.size(); i++) {
             keys.push_back(tokens[i]);
-            this->getLogger().appendCommand(Operation::convertStr(op.substr(1)), tokens[i]);
+            this->logger->appendCommand(Operation::convertStr(op.substr(1)), tokens[i]);
         }
         this->mdel(keys);
     }
@@ -258,29 +270,25 @@ void DB::parseCommand(const std::string& command) {
             keys.push_back(tokens[i]);
         }
         std::vector<std::optional<std::string>> values = this->mget(keys); // Actual retrieved values
-        this->display(keys);
+        std::vector<std::string> res;
+        // Only return non-nullopt values
+        for (auto& v: values) {
+            if (v) {
+                res.push_back(*v);
+            }
+        }
+        return res;
     }
     else {
-        const std::unordered_map<std::string, std::string> tips = {
-            {"put", "put <KEY> <VALUE>"},
-            {"del", "del <KEY>"},
-            {"get", "get <KEY>"},
-            {"mput", "mput <KEY1> <VALUE1> <KEY2> <VALUE2> ... <KEYN> <VALUEN>"},
-            {"mdel", "mdel <KEY1> <KEY2> ... <KEYN>"},
-            {"mget", "mget <KEY1> <KEY2> ... <KEYN>"},
-        };
-        if (tips.count(op) > 0) {
-            std::cerr << std::format("\nInvalid operator usage: '{}' ({})", op, tips.at(op)) << std::endl;
-        }
-        else {
-            std::cerr << "\nPlease use 'put', 'get', and 'del' operators as first keyword, or use 'help' for more." << std::endl;
-        }
+        std::cerr << "\nPlease use 'put', 'get', and 'del' operators as first keyword, or use 'help' for more." << std::endl;
     }
+
+    return {};
 }
 
 void DB::shutdown() {
     /* Shutdown access to the AOF to allow for compaction and snapshots. */
-    this->logger.closeLog();
-    this->logger.compactLog(this->store, this->dirty);
-    this->logger.writeBinarySnapshot(this->store);
+    this->logger->closeLog();
+    this->logger->compactLog(this->store, this->dirty);
+    this->logger->writeBinarySnapshot(this->store);
 }

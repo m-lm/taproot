@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 3.15...4.0)
 project(TaprootDB VERSION 1.0
-                  DESCRIPTION "In-memory key-value store"
+                  DESCRIPTION "Key-value store"
                   LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SHARED_SRC
-  src/db.cpp
-  src/log.cpp
   src/utils.cpp
   src/config.cpp
   src/operations.cpp
@@ -21,6 +19,9 @@ add_library(lz4 STATIC third-party/lz4/lz4.c)
 
 add_executable(taproot
   src/main.cpp
+  src/server.cpp
+  src/db.cpp
+  src/log.cpp
   ${SHARED_SRC}
 )
 
@@ -37,6 +38,8 @@ target_link_libraries(taproot PRIVATE lz4)
 
 add_executable(test
   tests/test.cpp
+  src/db.cpp
+  src/log.cpp
   ${SHARED_SRC}
 )
 
@@ -53,6 +56,7 @@ target_link_libraries(test PRIVATE lz4)
 
 add_executable(cli
   src/cli.cpp
+  src/client.cpp
   ${SHARED_SRC}
 )
 

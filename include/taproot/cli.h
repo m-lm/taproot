@@ -1,4 +1,5 @@
 #pragma once
+#include "client.h"
 
 void welcome();
-void cli();
+void cli(Client& client);

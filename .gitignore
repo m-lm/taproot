@@ -5,6 +5,7 @@ logs/
 config.cfg
 server.log
 test.log
+error.log
 
 # Prerequisites
 *.d

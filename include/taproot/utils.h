@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 bool isAllSpace(const std::string& input);
@@ -8,24 +9,28 @@ std::string toLower(std::string input);
 std::string getTimestamp();
 
 template <typename T>
-void printVector(const std::vector<T>& vector) {
+std::string printVector(const std::vector<T>& vector) {
     /* Prints vectors in a neat format for display. */
+    std::ostringstream buffer;
     for (const auto& elem : vector) {
-        std::cout << elem << std::endl;
+        buffer << elem << "\n";
     }
+    return buffer.str();
 }
 
 template <typename T>
-void printVector(const std::vector<std::optional<T>>& vector) {
+std::string printVector(const std::vector<std::optional<T>>& vector) {
     /* Prints vectors in a neat format for display when working with optional types. */
+    std::ostringstream buffer;
     for (const auto& elem : vector) {
         if (elem) {
-            std::cout << *elem << std::endl;
+            buffer << *elem << "\n";
         }
         else {
-            std::cout << "(null)" << std::endl;
+            buffer << "(null)\n";
         }
     }
+    return buffer.str();
 }
 
 template <typename T>

@@ -26,9 +26,9 @@ if [ "$1" = "--test" ]; then
 elif [ "$1" = "--cli" ]; then
     shift
     echo "Running client and server..."
-    ./build/taproot $@ > server.log 2>&1 &
+    ./build/taproot $@ > server.log 2> error.log &
     SERVER_PID=$!
-    sleep 0.2
+    sleep 0.5
     ./build/cli $@
     if kill -0 $SERVER_PID 2>/dev/null; then
         kill $SERVER_PID
@@ -37,5 +37,9 @@ elif [ "$1" = "--cli" ]; then
 # Run the server only
 else
     echo "Running server..."
-    ./build/taproot $@
+    ./build/taproot $@ > server.log 2> error.log
+    SERVER_PID=$!
+    if kill -0 $SERVER_PID 2>/dev/null; then
+        kill $SERVER_PID
+    fi
 fi

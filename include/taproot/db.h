@@ -10,7 +10,7 @@ class DB {
     protected:
         std::unordered_map<std::string, std::string> store;
         std::string name;
-        Log logger;
+        std::unique_ptr<Log> logger;
         bool replaying;
         size_t dirty;
 
@@ -31,16 +31,15 @@ class DB {
 
         // Log functionality
         bool isReplaying();
-        Log& getLogger();
         void loadFromLog();
 
         // Console print
-        void display() const;
-        void display(const std::string& key) const;
-        void display(const std::vector<std::string>& keys) const;
-        void displayKeys() const;
-        void displayValues() const;
-        void displayStats() const;
+        std::string display() const;
+        std::string display(const std::string& key) const;
+        std::string display(const std::vector<std::string>& keys) const;
+        std::string displayKeys() const;
+        std::string displayValues() const;
+        std::string displayStats() const;
 
         // General getters
         std::vector<std::string> getKeys() const;
@@ -49,7 +48,7 @@ class DB {
         std::vector<std::pair<std::string, std::optional<std::string>>> getItems(const std::vector<std::string>& keys) const;
 
         // Incoming command parser
-        void parseCommand(const std::string& command);
+        std::vector<std::string> parseCommand(const std::string& command);
 
         // Shutdown key-value store
         void shutdown();
