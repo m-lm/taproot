@@ -118,3 +118,7 @@ LZW compression: 93033ms (118MB down to 72.5MB)
 LZ4 compression: 2542ms (118MB down to 118MB, same because of random data)  
 
 **Result: 97% time decrease (~36x speedup).**
+
+## Future
+
+In the future, I would like to implement my own hash table, as well as provide support for proper data import/export and full config options. These are not priorities since it is slightly out of the original scope of this project.

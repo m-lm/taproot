@@ -24,9 +24,7 @@ Taproot is a key-value store written in C++20 with minimal dependencies, support
 
 ## Backlog
 - [ ] Concurrency: log compaction (currently, compaction occurs only on shutdown)
-- [ ] Config options
 - [ ] Full binary snapshot backups
-- [ ] Data import and export
 
 ## Setup
 
