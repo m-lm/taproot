@@ -34,11 +34,8 @@ void welcome() {
     std::cout << WELCOME << std::endl;
 }
 
-void cli(Client& client) {
+void cli(Client& client, std::string& keyspace) {
     /* Command-line display loop for interacting with Taproot. */
-    //std::string keyspaceName;
-    //std::cout << "\nEnter keyspace to use\n> ";
-    //std::getline(std::cin, keyspaceName);
     welcome();
     while (true) {
         std::string input;
@@ -48,10 +45,14 @@ void cli(Client& client) {
         if (input == "help") {
             welcome();
         }
+        else if (input == "use") {
+            std::cout << "\nEnter keyspace to use\n> ";
+            std::getline(std::cin, keyspace);
+        }
         else {
             res = client.send(input);
             std::cout << res << std::endl;
-            if (res == "-1") break;
+            if (res == "BYE") break;
         }
     }
 
@@ -70,13 +71,16 @@ int main(int argc, char** argv) {
     if (argc > 2) {
         validatePort(config, argv[2]);
     }
+    if (argc > 3) {
+        config.keyspace = argv[3];
+    }
 
     // Set up networking
     asio::io_context context;
     Client client(context, config);
 
     // Run command-line interface
-    cli(client);
+    cli(client, config.keyspace);
 
     return 0;
 }

@@ -7,7 +7,7 @@
 
 ## Design
 
-Taproot is a key-value store written in C++20 designed to be simple and easy to understand. The motivation for this project was to learn more about storage systems; key-value stores are one of the fundamental database types – many systems are built on top of them. I wanted mine to operate similarly to [Redis](https://redis.io/), which is why I chose an append-only log-based file storage as the persistence medium along with network communication via TCP sockets as the primary interface. Since this project is meant to be educational, I kept dependency usage to a minimum.
+Taproot is an in-memory key-value store written in C++20 designed to be simple and easy to understand. The motivation for this project was to learn more about data storage systems; key-value stores are one of the fundamental database types – many systems are built on top of them. I wanted mine to operate similarly to [Redis](https://redis.io/), which is why I chose an append-only log-based file storage as the persistence medium along with network communication via TCP sockets as the primary interface. Since this project is meant to be educational, I kept dependency usage to a minimum.
 
 #### Usage
 
@@ -21,7 +21,17 @@ Since the data structure used for in-memory storage is a hash table, sorted quer
 
 Taproot currently supports command-line interface (CLI) and will soon be able to communicate via sockets using the default address and port as "localhost" and "6379", respectively. The default port number 6379 mimics that of Redis.
 
+#### Configuration
+
 The main program of Taproot is a server that listens for client connections for a given address and port defined in `config.cfg`. The client can access the key-value server via the CLI executable or through the TCP-networked API.
+
+The default `config.cfg` file that lives in the root currently takes in host, port, and keyspace name in the following format:
+
+```
+host=<HOST>
+port=<PORT>
+keyspace=<KEYSPACE_NAME>
+```
 
 #### Dependencies
 

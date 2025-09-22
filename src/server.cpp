@@ -6,7 +6,7 @@
 #include <asio/ts/buffer.hpp>
 #include <iostream>
 
-Server::Server(asio::io_context& ctx, const Config& cfg) : host(cfg.host), port(cfg.port), ctx(ctx), socket(ctx), acceptor(ctx), config(cfg), db(std::make_unique<DB>("MyDB")) {
+Server::Server(asio::io_context& ctx, const Config& cfg) : host(cfg.host), port(cfg.port), ctx(ctx), socket(ctx), acceptor(ctx), config(cfg), db(std::make_unique<DB>(cfg.keyspace)) {
     // Networking interface (with IO context)
     asio::error_code err;
 
@@ -76,15 +76,15 @@ std::string Server::dispatcher(const std::string& input) {
     }
     else if (input == "clear") {
         db->clearData();
-        return "Data successfully deleted";
+        return "OK";
     }
     else if (tokens[0] == "use" && tokenSize == 2) {
         try {
             db->shutdown();
             db = std::make_unique<DB>(tokens[1]);
-            return "Switched keyspace to " + tokens[1];
+            return "OK switched keyspace to " + tokens[1];
         } catch (const std::exception& e) {
-            return std::format("Failed to switch keyspace to {}: {}", tokens[1], e.what());
+            return std::format("ERR couldn't switch to keyspace {}: {}", tokens[1], e.what());
         }
     }
     else if (input == "show") {
@@ -99,7 +99,7 @@ std::string Server::dispatcher(const std::string& input) {
     else if (input == "quit" || input == "exit") {
         this->running.store(false);
         this->db->shutdown();
-        return "-1";
+        return "BYE";
     }
     else {
         std::vector<std::string> res = db->parseCommand(input); // Returns a vector

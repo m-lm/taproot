@@ -2,8 +2,6 @@
 
 Taproot is a key-value store written in C++20 with minimal dependencies, supporting data persistence through append-only logs and LZ4-compressed binary snapshots with compaction for storage efficiency. It also supports client-server interfacing via TCP sockets by leveraging Asio, and emphasizes simplicity in setup, configuration, and workflow – all while being self-contained and easy to use.
 
-Taproot was developed to be a simple Redis-like clone for educational purposes with as few dependencies as possible. The impetus for this project was my growing interest in storage engines, data structures, and database management systems.
-
 -----
 
 ## Table of Contents
@@ -19,8 +17,8 @@ Taproot was developed to be a simple Redis-like clone for educational purposes w
 ## Features
 
 - Simple Redis-style functionality
-- Command-line and client-server interfaces (still in development)
-- Fast and human-readable append-only logs for persistent storage
+- Command-line and client-server interfaces
+- Human-readable append-only logs for persistent storage
 - Compaction, serialization, and LZ4 compression for binary snapshots
 - Minimal external dependencies
 
@@ -31,9 +29,9 @@ Taproot was developed to be a simple Redis-like clone for educational purposes w
 - [x] Client-server networking via TCP sockets
 - [ ] Concurrent writes and log compaction (currently, compaction only occurs on shutdown)
 - [ ] Implement own hash table
-- [ ] Data import and export
 - [ ] Config options
 - [ ] Full binary snapshot backups
+- [ ] Data import and export
 
 ## Setup
 

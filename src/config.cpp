@@ -46,6 +46,9 @@ Config parseConfig(const std::string& filename) {
     else {
         std::cerr << std::format("Invalid port: using {} instead.", cfg.port) << std::endl;
     }
+    if (map.count("keyspace")) {
+        cfg.keyspace = map["keyspace"];
+    }
     file.close();
     return cfg;
 }
@@ -95,6 +98,7 @@ void spawnConfig(const std::string& filename) {
         std::ofstream file(filename);
         file << "host=" << Defaults::HOST_DEFAULT << "\n";
         file << "port=" << Defaults::PORT_DEFAULT << "\n";
+        file << "keyspace=" << Defaults::KEYSPACE_DEFAULT << "\n";
         file.close();
     }
 }
