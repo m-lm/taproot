@@ -91,7 +91,8 @@ void DB::clearData() {
     /* Does not use MDEL; instead, it directly wipes the AOF and the map. */
     /* USED IN API */
     this->store.clear();
-    std::ofstream file(this->logger->getLogFilepath(), std::ios::out | std::ios::trunc); // Delete file and respawn an empty one before closing
+    std::ofstream logfile(this->logger->getLogFilepath(), std::ios::out | std::ios::trunc); // Delete file and respawn an empty one before closing
+    std::ofstream dbfile(this->logger->getDbFilepath(), std::ios::out | std::ios::trunc | std::ios::binary);
 }
 
 bool DB::isReplaying() {
