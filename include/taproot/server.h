@@ -28,4 +28,7 @@ class Server {
         void stop();
         std::string dispatcher(const std::string& input);
         void handleClient(asio::ip::tcp::socket clientSocket);
+        static void signalHandler(int);
+
+        static Server* instance;
 };

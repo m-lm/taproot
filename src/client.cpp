@@ -35,17 +35,25 @@ Client::~Client() {
 
 std::string Client::send(const std::string& data) {
     /* Send input data to server for dispatching. Input should be a command. Return a map response. */
-    asio::write(this->socket, asio::buffer(data + "\n"));
-    asio::streambuf buffer;
-    std::ostringstream responseStream;
-    while (true) {
-        asio::read_until(this->socket, buffer, "END\n"); // For now, read until reach "END\n" delimiter
-        std::istream is(&buffer);
-        std::string chunk((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
-        responseStream << chunk;
-        if (chunk.find("END\n") != std::string::npos) break;
+    try {
+        asio::write(this->socket, asio::buffer(data + "\n"));
+        asio::streambuf buffer;
+        std::ostringstream responseStream;
+        while (true) {
+            asio::read_until(this->socket, buffer, "END\n"); // For now, read until reach "END\n" delimiter
+            std::istream is(&buffer);
+            std::string chunk((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+            responseStream << chunk;
+            if (chunk.find("END\n") != std::string::npos) break;
+        }
+        std::string response = responseStream.str();
+        response.erase(response.find("END\n"));
+        return response;
+    } catch (const std::system_error& e) {
+        std::cerr << std::format("Server disconnected: {}\n", e.what());
+        return "";
+    } catch (const std::exception& e) {
+        std::cerr << std::format("Client error: {}\n", e.what());
+        return "";
     }
-    std::string response = responseStream.str();
-    response.erase(response.find("END\n"));
-    return response;
 }

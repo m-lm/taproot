@@ -16,12 +16,13 @@ int main() {
     // Networking interface
     asio::io_context context;
     Server server(context, config);
+    Server::instance = &server;
+
+    std::signal(SIGINT, Server::signalHandler);
+    std::signal(SIGTERM, Server::signalHandler);
 
     // Run server loop
-    //std::thread serverThread([&server]() {server.run();});
     server.run();
-    //server.stop();
-    //serverThread.join();
 
     return 0;
 }

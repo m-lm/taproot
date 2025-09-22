@@ -61,6 +61,8 @@ void cli(Client& client, std::string& keyspace) {
 
 int main(int argc, char** argv) {
     /* Main entrypoint for the command-line client. */
+
+    // Set up config
     const std::string configFilename = "config.cfg";
     Config config = parseConfig(configFilename);
 

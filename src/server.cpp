@@ -6,6 +6,14 @@
 #include <asio/ts/buffer.hpp>
 #include <iostream>
 
+Server* Server::instance = nullptr;
+
+void Server::signalHandler(int) {
+    if (instance) {
+        instance->stop();
+    }
+}
+
 Server::Server(asio::io_context& ctx, const Config& cfg) : host(cfg.host), port(cfg.port), ctx(ctx), socket(ctx), acceptor(ctx), config(cfg), db(std::make_unique<DB>(cfg.keyspace)) {
     // Networking interface (with IO context)
     asio::error_code err;
@@ -34,23 +42,28 @@ void Server::run() {
     /* Set up communication line with acceptor and socket. */
     this->running.store(true);
     while (this->running.load() && this->acceptor.is_open()) {
-        asio::ip::tcp::socket socket(this->ctx);
-        asio::error_code err;
-        this->acceptor.accept(socket, err); // Block until client connects
-        if (err) {
-            if (err == asio::error::operation_aborted) break;
-            if (err == asio::error::bad_descriptor) break;
-            std::cerr << "Accept error: " << err.message() << "\n";
-            continue;
-        }
-        // Spawn thread
-        std::thread([this, s = std::move(socket)]() mutable {
-            try {
-                this->handleClient(std::move(s));
-            } catch (const std::exception& e) {
-                std::cerr << "Client thread exception: " << e.what() << "\n";
+        try {
+            asio::ip::tcp::socket socket(this->ctx);
+            asio::error_code err;
+            this->acceptor.accept(socket, err); // Block until client connects
+            if (err) {
+                if (err == asio::error::operation_aborted) break;
+                if (err == asio::error::bad_descriptor) break;
+                std::cerr << "Accept error: " << err.message() << "\n";
+                continue;
             }
-        }).detach();
+            // Spawn thread
+            std::thread([this, s = std::move(socket)]() mutable {
+                try {
+                    this->handleClient(std::move(s));
+                } catch (const std::exception& e) {
+                    std::cerr << "Client thread exception: " << e.what() << "\n";
+                }
+            }).detach();
+        } catch (const std::system_error& e) {
+            if (running.load()) std::cerr << "Accept failed: " << e.what() << "\n";
+            break;
+        }
     }
     if (this->acceptor.is_open()) {
         this->acceptor.close();
@@ -62,6 +75,7 @@ void Server::stop() {
     this->running.store(false);
     asio::error_code err;
     if (this->acceptor.is_open()) {
+        this->acceptor.cancel();
         this->acceptor.close(err);
     }
 }
@@ -125,7 +139,9 @@ void Server::handleClient(asio::ip::tcp::socket clientSocket) {
             std::string response = this->dispatcher(incoming);
             asio::write(clientSocket, asio::buffer(response + "END\n"));
         }
-    } catch (const std::exception& e) {
+    } catch (const std::system_error& e) {
         std::cerr << std::format("Client {}:{} disconnected: {}\n", remoteEndpoint.address().to_string(), remoteEndpoint.port(), e.what());
+    } catch (const std::exception& e) {
+        std::cerr << std::format("Client error: {}\n", e.what());
     }
 }
